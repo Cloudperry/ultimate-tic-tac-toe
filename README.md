@@ -12,3 +12,5 @@ Sovelluksen ominaisuudet:
 * Käyttäjä voi katsoa omasta pelihistoriasta kuinka paljon peleja on voittanut ja hävinnyt sekä joitain perustilastoja.
 * Käyttäjä voi vaihtaa oman salasanan ja asettaa oman pelihistorian/tilastojen näkyvyyden muille käyttäjille.
 * Käyttäjä voi katsoa vuoro vuorolta pelihistoriaan tallennetun pelin. (Teen tämän ominaisuuden vain, jos tässä ei muuten olisi tarpeeksi tietokantoja hyödyntäviä toimintoja.)
+
+Laitan sovelluksen testattavaksi joko Herokuun tai omalle Raspberry Pi:lle, jos se toimii riittävän hyvin.
