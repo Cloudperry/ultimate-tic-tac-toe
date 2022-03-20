@@ -1,4 +1,4 @@
-# ultimate-tic-tac-toe
+# Ultimate Tic-tac-toe
 Kahdestaan pelattava [Ultimate Tic-tac-toe](https://en.wikipedia.org/wiki/Ultimate_tic-tac-toe). Ultimate Tic-tac-toe on versio ristinollasta, jossa pelilauta on 9x9 ja edellisen pelaajan siirto määrää seuraavan siirron sallitut ruudut.
 
 Sovelluksen ominaisuudet:
