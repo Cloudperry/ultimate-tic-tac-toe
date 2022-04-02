@@ -1,4 +1,2 @@
 .env
 __pycache__
-# Shell script that I use to activate the right venv while working on the project
-flask_proj_venv.fish
