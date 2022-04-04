@@ -2,17 +2,17 @@
 Kahdestaan pelattava [Ultimate Tic-tac-toe](https://en.wikipedia.org/wiki/Ultimate_tic-tac-toe). Ultimate Tic-tac-toe on versio ristinollasta, jossa pelilauta on 9x9 ja edellisen pelaajan siirto määrää seuraavan siirron sallitut ruudut.
 
 Sovelluksen ominaisuudet:
-	1. Etusivu kertoo pelin säännöt ja sisältää kaikki olennaiset linkit sovelluksen eri sivuille. 
-	2. Etusivu sisältää dataa tämänhetkisestä pelaajamäärästä tai aktiivisten pelien määrästä tms. 
-	3. Käyttäjä voi kirjautua sisään ja ulos sekä luoda uuden tunnuksen.
-	4. Käyttäjä voi lisätä muita käyttäjiä kaverikseen.
-	5. Käyttäjä voi luoda uuden peliaulan pääsykoodilla tai ilman sekä liittyä muiden luomiin peleihin joko katsojana tai pelaajana.
-	6. Aulan luoja voi poistaa käyttäjän aulasta tai antaa aulan toiselle käyttäjälle. 
-	7. Aulan omistaja voi luoda peliin liittymistä varten linkin.
-	8. Pelatessa pelaajalle näytetään kyseisen vuoron sallitut ruudut ja pelaaja voi sijoittaa ristin/nollan haluamaansa ruutuun.
-	9. Pelilauta päivittyy, kun vastustaja sijoittaa oman ristin/nollan.
-	10. Käyttäjä voi katsoa omasta pelihistoriasta kuinka paljon peleja on voittanut ja hävinnyt sekä joitain perustilastoja.
-	11. Käyttäjä voi vaihtaa oman salasanan ja asettaa oman pelihistorian/tilastojen näkyvyyden muille käyttäjille.
+1. Etusivu kertoo pelin säännöt ja sisältää kaikki olennaiset linkit sovelluksen eri sivuille. 
+2. Etusivu sisältää dataa tämänhetkisestä pelaajamäärästä tai aktiivisten pelien määrästä tms. 
+3. Käyttäjä voi kirjautua sisään ja ulos sekä luoda uuden tunnuksen.
+4. Käyttäjä voi lisätä muita käyttäjiä kaverikseen.
+5. Käyttäjä voi luoda uuden peliaulan pääsykoodilla tai ilman sekä liittyä muiden luomiin peleihin joko katsojana tai pelaajana.
+6. Aulan luoja voi poistaa käyttäjän aulasta tai antaa aulan toiselle käyttäjälle. 
+7. Aulan omistaja voi luoda peliin liittymistä varten linkin.
+8. Pelatessa pelaajalle näytetään kyseisen vuoron sallitut ruudut ja pelaaja voi sijoittaa ristin/nollan haluamaansa ruutuun.
+9. Pelilauta päivittyy, kun vastustaja sijoittaa oman ristin/nollan.
+10. Käyttäjä voi katsoa omasta pelihistoriasta kuinka paljon peleja on voittanut ja hävinnyt sekä joitain perustilastoja.
+11. Käyttäjä voi vaihtaa oman salasanan ja asettaa oman pelihistorian/tilastojen näkyvyyden muille käyttäjille.
 
 Laitan sovelluksen testattavaksi joko Herokuun tai omalle Raspberry Pi:lle, jos se toimii riittävän hyvin.
 
