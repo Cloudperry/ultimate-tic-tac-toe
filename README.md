@@ -16,5 +16,5 @@ Sovelluksen ominaisuudet:
 
 Sovellus on testattavissa [Herokussa](https://tsoha-ultimate-tic-tac-toe.herokuapp.com/)
 
-Sovelluksen tila 4.4.2022:
+Sovelluksen tila 4.4.2022:  
 Ominaisuuksista 1 ja 3 on toteutettu. Sovelluksen teossa tuli jonkin verran hankaluuksia vastaan, koska tajusin pelinäkymän päivittämisen pelimerkkejä sijoitettaessa olevan mahdotonta pelkällä Flaskilla (staattisilla sivuilla). Päivittämiseen voisin käyttää joko Websocketteja tai Server send eventtejä. Tällä hetkellä suunnitelma on käyttää pelinäkymään [tätä ui kirjastoa](https://github.com/treeform/fidget) ja käyttää Websocketteja [tällä kirjastolla](https://github.com/stisa/jswebsockets). En haluaisi käyttää Javascriptiä/HTML:ää, koska en osaa niitä enkä pidä Javascriptistä. Testasin edellä mainitun ui kirjaston toimivuuden selaimessa ja testaan seuraavaksi Websocket kirjastoa Flaskin kanssa. Tarkoituksena olisi siis päivittää pelilautaa dynaamisesti (lataamatta sivua uudelleen) Websocket viestin tullessa. Pelilogiikan ajattelin laittaa kuitenkin palvelimen puolelle huijaamisen estämiseksi. Pelinäkymän lisäksi saattaisin tehdä kaverilistan ja peliaulanäkymän jollain dynaamista päivitystä tukevalla teknologialla. (Sovelluksen teko hidastui myös, koska sain koronan.)
