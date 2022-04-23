@@ -80,3 +80,7 @@ def lobby(lobby_id: int):
 @app.route("/stats")
 def stats():
     return "Page for showing the user's game history/stats. Not yet implemented."
+
+@app.route("/stats-testing")
+def stats_testing():
+    return "Page for manually adding game entries. This will be removed when I implement the actual game view and stats saving."
