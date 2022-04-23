@@ -2,10 +2,9 @@ from flask import session
 from werkzeug.security import check_password_hash, generate_password_hash
 from init import db
 
-def login(username, password):
+def login(username: str, password: str) -> bool:
     sql = "SELECT id, password FROM users WHERE username=:username"
-    result = db.session.execute(sql, {"username":username})
-    user = result.fetchone()
+    user = db.session.execute(sql, {"username":username}).fetchone()
     if not user:
         return False
     else:
@@ -15,23 +14,38 @@ def login(username, password):
         else:
             return False
 
+def update_password(old_password: str, password: str) -> bool:
+    sql = "SELECT id, password FROM users WHERE id=:id"
+    user = db.session.execute(sql, {"id":user_id()}).fetchone()
+    if not user:
+        return False
+    else:
+        if check_password_hash(user.password, old_password):
+            password_hash = generate_password_hash(password)
+            sql = "UPDATE users SET password=:password WHERE id=:id"
+            db.session.execute(sql, {"id":user.id, "password":password_hash})
+            db.session.commit()
+            return True
+        else:
+            return False
+
 def logout():
     del session["user_id"]
 
-def register(username, password):
-    hash_value = generate_password_hash(password)
+def register(username: str, password: str) -> bool:
+    password_hash = generate_password_hash(password)
     try:
         sql = "INSERT INTO users (username,password,stats_visibility) VALUES (:username,:password,'private')"
-        db.session.execute(sql, {"username":username, "password":hash_value})
+        db.session.execute(sql, {"username":username, "password":password_hash})
         db.session.commit()
     except:
         return False
     return login(username, password)
 
-def user_id():
+def user_id() -> int:
     return session.get("user_id", 0)
 
-def logged_in():
+def is_logged_in():
     return user_id() != 0
 
 #TODO: Add updating passwords, showing stats, updating stats visibility
