@@ -17,7 +17,7 @@ def login():
         if users.login(username, password):
             return redirect("/")
         else:
-            return render_template("error.html", message="Wrong username or password.")
+            return render_template("login.html", login_failed=True)
 
 @app.route("/logout")
 def logout():
@@ -33,11 +33,11 @@ def register():
         password = request.form["password"]
         password_rep = request.form["password_rep"]
         if password_rep != password:
-            return render_template("error.html", message="The passwords don't match.")
+            return render_template("register.html", pw_no_match=True)
         if users.register(username, password):
             return redirect("/")
         else:
-            return render_template("error.html", message="That username is already taken.")
+            return render_template("register.html", username_taken=True)
 
 @app.route("/account")
 def account():
