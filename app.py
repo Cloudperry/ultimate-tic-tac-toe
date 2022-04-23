@@ -41,19 +41,27 @@ def register():
 
 @app.route("/account", methods=["GET", "POST"])
 def account():
-    if request.method == "GET":
-        return render_template("account.html")
-    if request.method == "POST":
-        if request.form["option_name"] == "password_change":
-            old_password = request.form["old_password"]
-            password = request.form["password"]
-            password_rep = request.form["password_rep"]
-            if password_rep != password:
-                return render_template("account.html", pws_not_matching=True)
-            elif users.update_password(old_password, password):
-                return render_template("account.html", pw_update_success=True)
-            else:
-                return render_template("account.html", incorrect_pw=True)
+    if users.is_logged_in():
+        if request.method == "GET":
+            #Having to set stats_vis everywhere is not ideal, maybe make a helper proc that calls render_template and extends the arguments given on the next line
+            return render_template("account.html", stats_vis=users.stats_vis()) 
+        if request.method == "POST":
+            if request.form["option_name"] == "password_change":
+                old_password = request.form["old_password"]
+                password = request.form["password"]
+                password_rep = request.form["password_rep"]
+                if password_rep != password:
+                    return render_template("account.html", pws_not_matching=True, stats_vis=users.stats_vis())
+                elif users.update_password(old_password, password):
+                    return render_template("account.html", pw_update_success=True, stats_vis=users.stats_vis())
+                else:
+                    return render_template("account.html", incorrect_pw=True, stats_vis=users.stats_vis())
+            elif request.form["option_name"] == "set_stats_vis":
+                if users.set_stats_vis(request.form["stats_vis"]):
+                    return render_template("account.html", stats_vis=users.stats_vis())
+    else:
+        return "Can't access user account settings while not logged in. Haven't yet created a template for this page."
+
 
 @app.route("/lobbies")
 def lobbies():
