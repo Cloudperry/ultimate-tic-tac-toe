@@ -21,6 +21,7 @@ CREATE TABLE lobbies (
 	player2_id INTEGER REFERENCES users,
 	spectator_count INTEGER, 
 	active BOOL
+	-- Last updated date could be added to make automatically removing lobbies that users forgot to close
 );
 
 -- I will probably not store the game state in the database
@@ -43,6 +44,7 @@ CREATE TABLE game_stats (
 	player1 INTEGER REFERENCES users,
 	player2 INTEGER REFERENCES users,
 	winning_player player_number,
-	move_count INTEGER 
+	move_count INTEGER,
+	played_on TIMESTAMP
 	-- Count of won subboards by each player could be added to this table
 );
