@@ -4,7 +4,7 @@ import users
 
 @app.route("/")
 def index():
-    logged_in = users.logged_in()
+    logged_in = users.is_logged_in()
     return render_template("index.html", logged_in=logged_in)
 
 @app.route("/login", methods=["GET", "POST"])
@@ -33,15 +33,26 @@ def register():
         password = request.form["password"]
         password_rep = request.form["password_rep"]
         if password_rep != password:
-            return render_template("register.html", pw_no_match=True)
-        if users.register(username, password):
+            return render_template("register.html", pws_not_matching=True)
+        elif users.register(username, password):
             return redirect("/")
         else:
             return render_template("register.html", username_taken=True)
 
-@app.route("/account")
+@app.route("/account", methods=["GET", "POST"])
 def account():
-    return "User account settings page. Will contain the option to change password and stats visibility. Not yet implemented. "
+    if request.method == "GET":
+        return render_template("account.html")
+    if request.method == "POST":
+        old_password = request.form["old_password"]
+        password = request.form["password"]
+        password_rep = request.form["password_rep"]
+        if password_rep != password:
+            return render_template("account.html", pws_not_matching=True)
+        elif users.update_password(old_password, password):
+            return redirect("/account")
+        else:
+            return render_template("account.html", incorrect_pw=True)
 
 @app.route("/lobbies")
 def lobbies():
