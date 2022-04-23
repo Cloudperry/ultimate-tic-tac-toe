@@ -1,0 +1,22 @@
+{% if pws_not_matching %}
+The given passwords don't match.
+{% elif incorrect_pw %}
+Old password is not correct.
+{% elif pw_update_success %}
+Password updated.
+{% endif %}
+<p>
+	Change password:
+</p>
+<form action="/account" method="post">
+	<p>
+		Old password: <input type="text" name="old_password">
+	</p>
+	<p>
+		New password: <input type="password" name="password">
+	</p>
+	<p>
+		Repeat password: <input type="password" name="password_rep">
+	</p>
+	<input type="submit" value="Change password">
+</form>
