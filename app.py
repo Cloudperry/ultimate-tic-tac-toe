@@ -44,15 +44,16 @@ def account():
     if request.method == "GET":
         return render_template("account.html")
     if request.method == "POST":
-        old_password = request.form["old_password"]
-        password = request.form["password"]
-        password_rep = request.form["password_rep"]
-        if password_rep != password:
-            return render_template("account.html", pws_not_matching=True)
-        elif users.update_password(old_password, password):
-            return redirect("/account")
-        else:
-            return render_template("account.html", incorrect_pw=True)
+        if request.form["option_name"] == "password_change":
+            old_password = request.form["old_password"]
+            password = request.form["password"]
+            password_rep = request.form["password_rep"]
+            if password_rep != password:
+                return render_template("account.html", pws_not_matching=True)
+            elif users.update_password(old_password, password):
+                return render_template("account.html", pw_update_success=True)
+            else:
+                return render_template("account.html", incorrect_pw=True)
 
 @app.route("/lobbies")
 def lobbies():
