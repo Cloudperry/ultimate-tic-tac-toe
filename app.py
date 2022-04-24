@@ -45,7 +45,7 @@ def register():
 def account():
     if users.is_logged_in():
         if request.method == "GET":
-            return render_template("account.html", stats_vis=users.stats_vis()) 
+            return render_template("account.html", username=users.username(), stats_vis=users.stats_vis()) 
         if request.method == "POST": 
             #TODO: render_template SHOULD NOT BE CALLED IN POST because then refreshing after form submit will try to resubmit it
             if request.form["option_name"] == "password_change":
@@ -53,14 +53,14 @@ def account():
                 password = request.form["password"]
                 password_rep = request.form["password_rep"]
                 if password_rep != password:
-                    return render_template("account.html", pws_not_matching=True, stats_vis=users.stats_vis())
+                    return render_template("account.html", username=users.username(), stats_vis=users.stats_vis(), pws_not_matching=True)
                 elif users.update_password(old_password, password):
-                    return render_template("account.html", pw_update_success=True, stats_vis=users.stats_vis())
+                    return render_template("account.html", username=users.username(), stats_vis=users.stats_vis(), pw_update_success=True)
                 else:
-                    return render_template("account.html", incorrect_pw=True, stats_vis=users.stats_vis())
+                    return render_template("account.html", username=users.username(), stats_vis=users.stats_vis(), incorrect_pw=True)
             elif request.form["option_name"] == "set_stats_vis":
                 if users.set_stats_vis(request.form["stats_vis"]):
-                    return render_template("account.html", stats_vis=users.stats_vis())
+                    return render_template("account.html", username=users.username(), stats_vis=users.stats_vis())
     else:
         return "Can't access user account settings while not logged in. This page will have a button to go back to the front page when I make it."
 
