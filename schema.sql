@@ -41,8 +41,8 @@ CREATE TABLE messages (
 CREATE TYPE player_number AS ENUM ('1', '2');
 
 CREATE TABLE game_stats (
-	winner INTEGER REFERENCES users,
-	loser INTEGER REFERENCES users,
+	winner_id INTEGER REFERENCES users,
+	loser_id INTEGER REFERENCES users,
 	move_count INTEGER,
 	played_on TIMESTAMP
 	-- Count of won subboards by each player could be added to this table
