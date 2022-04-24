@@ -10,13 +10,6 @@
 <h2>
 	Your last 20 games:
 </h2>
-<p>
-	{% for game in game_history %}
-	<p>
-		{{ game }}
-	</p>
-	{% endfor %}
-</p>
 <div class="verticalScrollableTable">
 	<table>
 		<thead>
@@ -28,8 +21,9 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr><td>Username</td> <td>Win</td> <td>50</td> <td>2022-04-24 19:40:30</td></tr>
-			<tr><td>Username</td> <td>Loss</td> <td>50</td> <td>2022-04-24 19:34:24</td></tr>
+			{% for game in game_history %}
+				<tr><td>{{game.opponent}}</td> <td>{{game.result}}</td> <td>{{game.move_count}}</td> <td>{{game.played_on}}</td></tr>
+			{% endfor %}
 		</tbody>
 	</table>
 </div>
