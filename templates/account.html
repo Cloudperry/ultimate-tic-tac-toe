@@ -15,7 +15,7 @@ Password updated.
 	Change password:
 </p>
 <form action="/account" method="post">
-	<input type="hidden" name="option_name" value="password_change"/>
+	<input type="hidden" name="action" value="password_change"/>
 	<p>
 		Old password: <input type="text" name="old_password">
 	</p>
@@ -30,7 +30,7 @@ Password updated.
 
 <br>
 <form action="/account" method="post">
-	<input type="hidden" name="option_name" value="set_stats_vis"/>
+	<input type="hidden" name="action" value="set_stats_vis"/>
 	<label for="stats_vis">Stats visibility:</label>
 	<select id="stats_vis" name="stats_vis">
 		<option value="private" {% if stats_vis == 'private' %}selected{% endif %}>Private {{stats_vis}}</option>
