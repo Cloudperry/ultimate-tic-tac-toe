@@ -43,7 +43,6 @@ def register():
 def account():
     if users.is_logged_in():
         if request.method == "GET":
-            #Having to set stats_vis everywhere is not ideal, maybe make a helper proc that calls render_template and extends the arguments given on the next line
             return render_template("account.html", stats_vis=users.stats_vis()) 
         if request.method == "POST":
             if request.form["option_name"] == "password_change":
@@ -60,7 +59,7 @@ def account():
                 if users.set_stats_vis(request.form["stats_vis"]):
                     return render_template("account.html", stats_vis=users.stats_vis())
     else:
-        return "Can't access user account settings while not logged in. Haven't yet created a template for this page."
+        return "Can't access user account settings while not logged in. This page will have a button to go back to the front page when I make it."
 
 
 @app.route("/lobbies")
