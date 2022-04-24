@@ -1,11 +1,12 @@
 from flask import redirect, render_template, request
 from init import app
-import users
+import users, game_stats, lobbies
 
 @app.route("/")
 def index():
     logged_in = users.is_logged_in()
-    return render_template("index.html", logged_in=logged_in)
+    return render_template("index.html", logged_in=logged_in, 
+                           games_played=game_stats.games_played(), active_games=lobbies.active_games())
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -29,6 +30,7 @@ def register():
     if request.method == "GET":
         return render_template("register.html")
     if request.method == "POST":
+        #TODO: render_template SHOULD NOT BE CALLED IN POST because then refreshing after form submit will try to resubmit it
         username = request.form["username"]
         password = request.form["password"]
         password_rep = request.form["password_rep"]
@@ -44,7 +46,8 @@ def account():
     if users.is_logged_in():
         if request.method == "GET":
             return render_template("account.html", stats_vis=users.stats_vis()) 
-        if request.method == "POST":
+        if request.method == "POST": 
+            #TODO: render_template SHOULD NOT BE CALLED IN POST because then refreshing after form submit will try to resubmit it
             if request.form["option_name"] == "password_change":
                 old_password = request.form["old_password"]
                 password = request.form["password"]
@@ -62,8 +65,8 @@ def account():
         return "Can't access user account settings while not logged in. This page will have a button to go back to the front page when I make it."
 
 
-@app.route("/lobbies")
-def lobbies():
+@app.route("/play")
+def play():
     return "Game lobby creation/join page. Not yet implemented."
 
 #The game/lobby pages will be entered by clicking a button in /lobbies 
@@ -79,7 +82,3 @@ def lobby(lobby_id: int):
 @app.route("/stats")
 def stats():
     return "Page for showing the user's game history/stats. Not yet implemented."
-
-@app.route("/stats-testing")
-def stats_testing():
-    return "Page for manually adding game entries. This will be removed when I implement the actual game view and stats saving."
