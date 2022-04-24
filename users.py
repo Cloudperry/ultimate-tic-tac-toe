@@ -57,6 +57,13 @@ def register(username: str, password: str) -> bool:
         return False
     return login(username, password)
 
+def username_from_id(id: int) -> int:
+    sql = "SELECT username FROM users WHERE id=:id"
+    return db.session.execute(sql, {"id":id}).fetchone()[0]
+
+def username() -> int:
+    return username_from_id(user_id())
+
 def user_id() -> int:
     return session.get("user_id", 0)
 
