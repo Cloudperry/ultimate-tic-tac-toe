@@ -62,5 +62,3 @@ def user_id() -> int:
 
 def is_logged_in():
     return user_id() != 0
-
-#TODO: Add updating passwords, showing stats, updating stats visibility
