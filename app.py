@@ -1,4 +1,4 @@
-from flask import redirect, render_template, request
+from flask import redirect, render_template, request, url_for
 from init import app
 import users, game_stats, lobbies
 
@@ -64,7 +64,6 @@ def account():
     else:
         return "Can't access user account settings while not logged in. This page will have a button to go back to the front page when I make it."
 
-
 @app.route("/play")
 def play():
     return "Game lobby creation/join page. Not yet implemented."
@@ -81,4 +80,9 @@ def lobby(lobby_id: int):
 
 @app.route("/stats")
 def stats():
-    return "Page for showing the user's game history/stats. Not yet implemented."
+    return render_template(
+        "stats.html", 
+        username=users.username(), 
+        game_history=game_stats.user_n_last_games(20),
+        games_played=game_stats.user_games_played()
+    )

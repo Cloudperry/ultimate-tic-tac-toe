@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='stats.css') }}">
+
+<h1>
+	Game stats for {{username}}
+</h1>
+<h2>
+	You have played {{games_played}} games.
+</h2>
+<h2>
+	Your last 20 games:
+</h2>
+<p>
+	{% for game in game_history %}
+	<p>
+		{{ game }}
+	</p>
+	{% endfor %}
+</p>
+<div class="verticalScrollableTable">
+	<table>
+		<thead>
+  			<tr>
+				<th>Opponent</th>
+				<th>Result</th>
+				<th>Moves</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr><td>Username</td> <td>Win</td> <td>50</td> <td>2022-04-24 19:40:30</td></tr>
+			<tr><td>Username</td> <td>Loss</td> <td>50</td> <td>2022-04-24 19:34:24</td></tr>
+		</tbody>
+	</table>
+</div>
