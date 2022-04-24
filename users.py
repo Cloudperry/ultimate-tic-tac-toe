@@ -50,7 +50,7 @@ def logout():
 def register(username: str, password: str) -> bool:
     password_hash = generate_password_hash(password)
     try:
-        sql = "INSERT INTO users (username,password,stats_vis) VALUES (:username,:password,'private')"
+        sql = "INSERT INTO users (username,password,stats_visibility) VALUES (:username,:password,'private')"
         db.session.execute(sql, {"username":username, "password":password_hash})
         db.session.commit()
     except:
