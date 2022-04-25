@@ -1,7 +1,6 @@
 from flask import redirect, render_template, request, url_for
 from werkzeug.wrappers.response import Response
 from init import app
-import json
 import users, game_stats, lobbies
 
 def redirect_to_needs_login() -> Response:
