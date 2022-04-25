@@ -21,11 +21,11 @@ CREATE TABLE lobbies (
 	id SERIAL PRIMARY KEY,
 	owner_id INTEGER REFERENCES users NOT NULL,
 	player2_id INTEGER REFERENCES users NOT NULL,
-	spectator_count INTEGER NOT NULL,
 	active BOOL NOT NULL,
+	friends_only BOOL NOT NULL;
 	UNIQUE (owner_id, player2_id),
 	UNIQUE (player2_id, owner_id)
-	-- Last updated date could be added to make automatically removing lobbies that users forgot to close
+	-- Last updated date could be added for automatically removing lobbies that users forgot to close
 );
 
 -- I will probably not store the game state in the database
