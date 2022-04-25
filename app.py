@@ -69,7 +69,7 @@ def account():
                 if users.set_stats_vis(request.form["stats_vis"]):
                     return render_template("account.html", username=users.username(), stats_vis=users.stats_vis())
     else:
-        return redirect() 
+        return redirect_to_needs_login() 
 
 @app.route("/lobbies")
 def play():
@@ -83,7 +83,7 @@ def game(lobby_id: int):
 
 @app.route("/lobby/<int:lobby_id>")
 def lobby(lobby_id: int):
-    return "Page for editing lobby settings and the lobby owner can start the game from here. This will be written in Nim. The clients will communicate to the server via a Websocket url that is specific to the game lobby. Not yet implemented."
+    return "Page for editing lobby settings and the lobby owner can start the game from here. Not yet implemented."
 
 @app.route("/stats")
 def stats():
@@ -116,7 +116,7 @@ def friends():
             elif request.form["action"] == "send_friend_req":
                 result = users.send_friend_req(request.form["username"])
                 if not result.success:
-                    return redirect(url_for('.error', msg=result.result_or_msg))
+                    return redirect(url_for('.error', msg=result.result_or_msg + " This error will be changed to an inline error message on the friends page later."))
             return redirect("/friends")
     else:
         redirect_to_needs_login()
