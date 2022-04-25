@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='friends.css') }}">
+<h2>
+	Send friend request:
+</h2>
+<form action="/friends" method="post">
+	<input type="hidden" name="action" value="send_friend_req"/>
+	<input type="text" name="username"/>
+	<input type="submit" value="Send">
+</form>
+<br>
+
+<p><div class="verticalScrollableTable">
+	<table>
+		<thead>
+  			<tr>
+				<th>Friends</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for friend in friends %}
+				<tr><td>{{friend.name}}</td></tr>
+				<tr><td>
+					<form action="/friends" method="post">
+						<input type="hidden" name="action" value="remove_friend"/>
+						<input type="hidden" name="id" value={{friend.id}} />
+						<input type="submit" value="Remove friend">
+					</form>
+				</td><tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div></p>
+
+<p><div class="verticalScrollableTable">
+	<table>
+		<thead>
+  			<tr>
+				<th>Pending friend requests</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for friend_req in friend_reqs_in %}
+				<tr><td>{{friend_req.name}}</td></tr>
+				<tr><td>
+					<form action="/friends" method="post">
+						<input type="hidden" name="action" value="accept_friend_req"/>
+						<input type="hidden" name="id" value={{friend_req.id}} />
+						<input type="submit" value="Accept">
+					</form>
+				</td><tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div></p>
+
+<p><div class="verticalScrollableTable">
+	<table>
+		<thead>
+  			<tr>
+				<th>Sent friend requests</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for friend_req in friend_reqs_out %}
+				<tr><td>{{friend_req.name}}</td></tr>
+				</td><tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div></p>
