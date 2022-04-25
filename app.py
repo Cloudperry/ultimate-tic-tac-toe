@@ -1,7 +1,11 @@
 from flask import redirect, render_template, request, url_for
+from werkzeug.wrappers.response import Response
 from init import app
 import json
 import users, game_stats, lobbies
+
+def redirect_to_needs_login() -> Response:
+    return redirect(url_for('.error', msg="Can't access user stats while not logged in."))
 
 @app.route("/")
 def index():
@@ -65,7 +69,7 @@ def account():
                 if users.set_stats_vis(request.form["stats_vis"]):
                     return render_template("account.html", username=users.username(), stats_vis=users.stats_vis())
     else:
-        return "Can't access user account settings while not logged in. This page will have a button to go back to the front page when I make it."
+        return redirect() 
 
 @app.route("/lobbies")
 def play():
@@ -91,7 +95,7 @@ def stats():
             games_played=game_stats.user_games_played()
         )
     else:
-        return "Can't access user stats while not logged in. This page will have a button to go back to the front page when I make it."
+        redirect_to_needs_login()
 
 @app.route("/friends", methods=["GET", "POST"])
 def friends():
@@ -115,7 +119,7 @@ def friends():
                     return redirect(url_for('.error', msg=result.result_or_msg))
             return redirect("/friends")
     else:
-        return "Can't access friends list while not logged in. This page will have a button to go back to the front page when I make it."
+        redirect_to_needs_login()
 
 @app.route("/error")
 def error():
