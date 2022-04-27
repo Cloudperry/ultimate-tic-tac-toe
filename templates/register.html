@@ -1,9 +1,19 @@
 <!DOCTYPE html>
-{% if pws_not_matching %}
+<h1>
+	<a href="/">Go back to frontpage</a>
+</h1>
+
+<p>
+{% if err_name == "pws_not_matching" %}
 The given passwords don't match.
-{% elif username_taken %}
+{% elif err_name == "username_taken" %}
 That username is already taken.
+{% elif err_name == "short_username" %}
+The username is too short. It needs to be at least 2 characters long.
+{% elif err_name == "short_pw" %}
+The password is too short. It needs to be at least 6 characters long.
 {% endif %}
+</p>
 
 <form action="/register" method="post">
 	<p>

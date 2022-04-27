@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<h1>
+	<a href="/">Go back to frontpage</a>
+</h1>
+
+<p>
+{{err_msg}}
+</p>
+
 <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='friends.css') }}">
 <form action="/friends" method="post">
 	<input type="hidden" name="action" value="send_friend_req"/>

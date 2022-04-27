@@ -1,7 +1,13 @@
 <!DOCTYPE html>
-{% if login_failed %}
+<h1>
+	<a href="/">Go back to frontpage</a>
+</h1>
+
+<p>
+{% if err_name == "wrong_credentials" %}
 Wrong username or password.
 {% endif %}
+</p>
 
 <form action="/login" method="post">
 	<p>
