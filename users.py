@@ -33,15 +33,10 @@ def update_password(old_password: str, password: str) -> bool:
             return False
 
 def set_stats_vis(visibility: str) -> bool:
-    sql = "SELECT id, password FROM users WHERE id=:id"
-    user = db.session.execute(sql, {"id":user_id()}).fetchone()
-    if not user:
-        return False
-    else:
-        sql = "UPDATE users SET stats_visibility=:stats_vis WHERE id=:id"
-        db.session.execute(sql, {"id":user.id, "stats_vis":visibility})
-        db.session.commit()
-        return True
+    sql = "UPDATE users SET stats_visibility=:stats_vis WHERE id=:id"
+    db.session.execute(sql, {"id":user_id(), "stats_vis":visibility})
+    db.session.commit()
+    return True
 
 def stats_vis() -> str:
     sql = "SELECT stats_visibility FROM users WHERE id=:id"
