@@ -2,6 +2,7 @@ from flask import session
 from werkzeug.security import check_password_hash, generate_password_hash
 from init import db
 from collections import namedtuple
+from secrets import token_hex
 
 Result = namedtuple("Result", ["success", "result_or_msg"])
 
@@ -13,6 +14,7 @@ def login(username: str, password: str) -> bool:
     else:
         if check_password_hash(user.password, password):
             session["user_id"] = user.id
+            session["login_token"] = token_hex(16)
             return True
         else:
             return False

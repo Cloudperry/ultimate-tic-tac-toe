@@ -1,4 +1,4 @@
-from flask import redirect, render_template, request, url_for
+from flask import redirect, render_template, request, url_for, session, abort
 from werkzeug.wrappers.response import Response
 from init import app
 import users, game_stats, lobbies
@@ -57,18 +57,21 @@ def account():
             return render_template("account.html", username=users.username(), stats_vis=users.stats_vis()) 
         if request.method == "POST": 
             redirect_to = url_for(".account") # Show account page again if there were no errors
-            if request.form["action"] == "password_change":
-                old_password = request.form["old_password"]
-                password = request.form["password"]
-                password_rep = request.form["password_rep"]
-                if password_rep != password:
-                    redirect_to = url_for(".account", err_name="pws_not_matching")
-                elif users.update_password(old_password, password):
-                    redirect_to = url_for(".account", err_name="pw_updated")
-                else:
-                    redirect_to = url_for(".account", err_name="wrong_pw")
-            elif request.form["action"] == "set_stats_vis":
-                users.set_stats_vis(request.form["stats_vis"])
+            if request.form.get("login_token", "") != session["login_token"]:
+                abort(403)
+            else:
+                if request.form["action"] == "password_change":
+                    old_password = request.form["old_password"]
+                    password = request.form["password"]
+                    password_rep = request.form["password_rep"]
+                    if password_rep != password:
+                        redirect_to = url_for(".account", err_name="pws_not_matching")
+                    elif users.update_password(old_password, password):
+                        redirect_to = url_for(".account", err_name="pw_updated")
+                    else:
+                        redirect_to = url_for(".account", err_name="wrong_pw")
+                elif request.form["action"] == "set_stats_vis":
+                    users.set_stats_vis(request.form["stats_vis"])
             return redirect(redirect_to)
     else:
         return redirect_to_needs_login() 
@@ -113,19 +116,22 @@ def friends():
             )
         if request.method == "POST":
             redirect_to = url_for(".friends")
-            if request.form["action"] == "accept_friend_req":
-                #It's safe to parse id as an int, because it comes from a hidden field of the form, that the user cannot modify in normal use
-                users.accept_friend_req(int(request.form["id"])) 
-            elif request.form["action"] == "remove_friend":
-                users.remove_friend(int(request.form["id"]))
-            elif request.form["action"] == "send_friend_req":
-                if len(request.form["username"]) < 2:
-                    redirect_to = url_for(".friends", err_msg="Can't send friend request, because username should be at least 2 characters long.") 
-                else:
-                    result = users.send_friend_req(request.form["username"])
-                    if not result.success:
-                        #This error message should be converted to error message names as well, so that all the UI related things can be seen in the html
-                        redirect_to = url_for(".friends", err_msg=result.result_or_msg) 
+            if request.form["login_token"] != session["login_token"]:
+                abort(403)
+            else:
+                if request.form["action"] == "accept_friend_req":
+                    #It's safe to parse id as an int, because it comes from a hidden field of the form, that the user cannot modify in normal use
+                    users.accept_friend_req(int(request.form["id"])) 
+                elif request.form["action"] == "remove_friend":
+                    users.remove_friend(int(request.form["id"]))
+                elif request.form["action"] == "send_friend_req":
+                    if len(request.form["username"]) < 2:
+                        redirect_to = url_for(".friends", err_msg="Can't send friend request, because username should be at least 2 characters long.") 
+                    else:
+                        result = users.send_friend_req(request.form["username"])
+                        if not result.success:
+                            #This error message should be converted to error message names as well, so that all the UI related things can be seen in the html
+                            redirect_to = url_for(".friends", err_msg=result.result_or_msg) 
             return redirect(redirect_to)
     else:
         redirect_to_needs_login()
