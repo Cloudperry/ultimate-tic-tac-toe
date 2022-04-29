@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<h1>
-	<a href="/">Go back to frontpage</a>
-</h1>
-
+{% extends "layout.html" %}
+{% block content %}
 <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='stats.css') }}">
 
 <h1>
@@ -31,3 +29,4 @@
 		</tbody>
 	</table>
 </div>
+{% endblock %}

@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<h1>
-	<a href="/">Go back to frontpage</a>
-</h1>
-
+{% extends "layout.html" %}
+{% block content %}
 <p>
 {{err_msg}}
 </p>
@@ -27,6 +25,7 @@
 				<tr><td>{{friend.name}}</td></tr>
 				<tr><td>
 					<form action="/friends" method="post">
+						<input type="hidden" name="login_token" value={{ session.login_token }}/>
 						<input type="hidden" name="action" value="remove_friend"/>
 						<input type="hidden" name="id" value={{friend.id}} />
 						<input type="submit" value="Remove friend">
@@ -49,6 +48,7 @@
 				<tr><td>{{friend_req.name}}</td></tr>
 				<tr><td>
 					<form action="/friends" method="post">
+						<input type="hidden" name="login_token" value={{ session.login_token }}/>
 						<input type="hidden" name="action" value="accept_friend_req"/>
 						<input type="hidden" name="id" value={{friend_req.id}} />
 						<input type="submit" value="Accept">
@@ -74,3 +74,4 @@
 		</tbody>
 	</table>
 </div></p>
+{% endblock %}

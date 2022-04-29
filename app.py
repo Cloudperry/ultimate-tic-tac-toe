@@ -8,15 +8,18 @@ def redirect_to_needs_login() -> Response:
 
 @app.route("/")
 def index():
-    logged_in = users.is_logged_in()
-    return render_template("index.html", logged_in=logged_in, 
-                           games_played=game_stats.games_played(), active_games=lobbies.active_games())
+    return render_template(
+        "index.html",
+        logged_in=users.is_logged_in(),
+        games_played=game_stats.games_played(),
+        active_games=lobbies.active_games()
+    )
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
         err_name=request.args.get("err_name", "")
-        return render_template("login.html", err_name=err_name)
+        return render_template("login.html", logged_in=users.is_logged_in(), err_name=err_name)
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -34,7 +37,7 @@ def logout():
 def register():
     if request.method == "GET":
         err_name=request.args.get("err_name", "")
-        return render_template("register.html", err_name=err_name)
+        return render_template("register.html", logged_in=users.is_logged_in(), err_name=err_name)
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -54,7 +57,7 @@ def register():
 def account():
     if users.is_logged_in():
         if request.method == "GET":
-            return render_template("account.html", username=users.username(), stats_vis=users.stats_vis()) 
+            return render_template("account.html", logged_in=True, username=users.username(), stats_vis=users.stats_vis()) 
         if request.method == "POST": 
             redirect_to = url_for(".account") # Show account page again if there were no errors
             if request.form.get("login_token", "") != session["login_token"]:
@@ -78,23 +81,24 @@ def account():
 
 @app.route("/lobbies")
 def play():
-    return render_template("lobby-list.html")
+    return render_template("lobby-list.html", logged_in=users.is_logged_in())
 
 #The game/lobby pages will be entered by clicking a button in /lobbies 
 #(or by clicking a join link if I implement that)
 @app.route("/game/<int:lobby_id>")
 def game(lobby_id: int):
-    return render_template("game.html", lobby_id=lobby_id)
+    return render_template("game.html", lobby_id=lobby_id, logged_in=users.is_logged_in())
 
 @app.route("/lobby/<int:lobby_id>")
 def lobby(lobby_id: int):
-    return render_template("lobby.html", lobby_id=lobby_id)
+    return render_template("lobby.html", lobby_id=lobby_id, logged_in=users.is_logged_in())
 
 @app.route("/stats")
 def stats():
     if users.is_logged_in():
         return render_template(
             "stats.html", 
+            logged_in=True,
             username=users.username(), 
             game_history=game_stats.user_n_last_games(20),
             games_played=game_stats.user_games_played()
@@ -109,6 +113,7 @@ def friends():
             err_msg = request.args.get("err_msg", "")
             return render_template(
                 "friends.html", 
+                logged_in=True,
                 friends=users.friends_of_user(),
                 friend_reqs_in=users.friend_reqs_to_user(),
                 friend_reqs_out=users.friend_reqs_from_user(),

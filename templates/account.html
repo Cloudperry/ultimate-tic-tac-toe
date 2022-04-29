@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<h1>
-	<a href="/">Go back to frontpage</a>
-</h1>
-
+{% extends "layout.html" %}
+{% block content %}
 <h1>
 	Account settings for {{username}}
 </h1>
@@ -20,6 +18,7 @@ Password updated.
 </p>
 <form action="/account" method="post">
 	<input type="hidden" name="action" value="password_change"/>
+	<input type="hidden" name="login_token" value={{ session.login_token }} />
 	<p>
 		Old password: <input type="text" name="old_password">
 	</p>
@@ -35,6 +34,7 @@ Password updated.
 <br>
 <form action="/account" method="post">
 	<input type="hidden" name="action" value="set_stats_vis"/>
+	<input type="hidden" name="login_token" value={{ session.login_token }} />
 	<label for="stats_vis">Stats visibility:</label>
 	<select id="stats_vis" name="stats_vis">
 		<option value="private" {% if stats_vis == 'private' %}selected{% endif %}>Private</option>
@@ -43,3 +43,4 @@ Password updated.
   	</select>
   	<input type="submit" value="Set visibility">
 </form>
+{% endblock %}

@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+{% extends "layout.html" %}
+{% block content %}
 <title>Ultimate Tic-tac-toe</title>
 <h1>Welcome to multiplayer Ultimate Tic-tac-toe!</h1>
 <p>
@@ -28,15 +30,4 @@
 		</li>
 	</ul>
 </p>
-<p>
-	<a href="/lobbies">Play/spectate</a> &nbsp;&nbsp
-	{% if logged_in %}
-	<a href="/friends">Friends</a> &nbsp;&nbsp
-	<a href="/stats">Personal statistics</a> &nbsp;&nbsp
-	<a href="/account">Account settings</a> &nbsp;&nbsp
-	<a href="/logout">Log out</a> &nbsp;&nbsp
-	{% else %}
-	<a href="/register">Create account</a> &nbsp;&nbsp
-	<a href="/login">Log in</a> &nbsp;&nbsp
-	{% endif %}
-</p>
+{% endblock %}
