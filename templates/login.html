@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<h1>
-	<a href="/">Go back to frontpage</a>
-</h1>
-
+{% extends "layout.html" %}
+{% block content %}
 <p>
 {% if err_name == "wrong_credentials" %}
 Wrong username or password.
@@ -19,3 +17,4 @@ Wrong username or password.
 	<input type="submit" value="Log in">
 </form>
 If you don't have an account you can create one <a href="/register">here</a>
+{% endblock %}
