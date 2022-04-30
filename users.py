@@ -34,14 +34,14 @@ def update_password(old_password: str, password: str) -> bool:
         else:
             return False
 
-def set_stats_vis(visibility: str) -> bool:
-    sql = "UPDATE users SET stats_visibility=:stats_vis WHERE id=:id"
-    db.session.execute(sql, {"id":user_id(), "stats_vis":visibility})
+def set_profile_vis(visibility: str) -> bool:
+    sql = "UPDATE users SET visibility=:visibility WHERE id=:id"
+    db.session.execute(sql, {"id":user_id(), "visibility":visibility})
     db.session.commit()
     return True
 
-def stats_vis() -> str:
-    sql = "SELECT stats_visibility FROM users WHERE id=:id"
+def profile_vis() -> str:
+    sql = "SELECT visibility FROM users WHERE id=:id"
     return db.session.execute(sql, {"id":user_id()}).fetchone()[0]
 
 def logout():
@@ -50,7 +50,7 @@ def logout():
 def register(username: str, password: str) -> bool:
     password_hash = generate_password_hash(password)
     try:
-        sql = "INSERT INTO users (username,password,stats_visibility) VALUES (:username,:password,'private')"
+        sql = "INSERT INTO users (username, password, visibility) VALUES (:username, :password, 'private')"
         db.session.execute(sql, {"username":username, "password":password_hash})
         db.session.commit()
     except:
