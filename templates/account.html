@@ -37,9 +37,9 @@ Password updated.
 	<input type="hidden" name="login_token" value={{ session.login_token }} />
 	<label for="profile_vis">Profile visibility:</label>
 	<select id="profile_vis" name="profile_vis">
-		<option value="private" {% if visibility == 'private' %}selected{% endif %}>Private</option>
-		<option value="friends" {% if visibility == 'friends' %}selected{% endif %}>Friends only</option>
-		<option value="public" {% if visibility == 'public' %}selected{% endif %}>Public</option>
+		<option value="private" {% if profile_vis == 'private' %}selected{% endif %}>Private</option>
+		<option value="friends" {% if profile_vis == 'friends' %}selected{% endif %}>Friends only</option>
+		<option value="public" {% if profile_vis == 'public' %}selected{% endif %}>Public</option>
   	</select>
   	<input type="submit" value="Set visibility">
 </form>
