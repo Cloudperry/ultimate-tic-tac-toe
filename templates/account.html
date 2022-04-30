@@ -33,13 +33,13 @@ Password updated.
 
 <br>
 <form action="/account" method="post">
-	<input type="hidden" name="action" value="set_stats_vis"/>
+	<input type="hidden" name="action" value="set_profile_vis"/>
 	<input type="hidden" name="login_token" value={{ session.login_token }} />
-	<label for="stats_vis">Stats visibility:</label>
-	<select id="stats_vis" name="stats_vis">
-		<option value="private" {% if stats_vis == 'private' %}selected{% endif %}>Private</option>
-		<option value="friends" {% if stats_vis == 'friends' %}selected{% endif %}>Friends only</option>
-		<option value="public" {% if stats_vis == 'public' %}selected{% endif %}>Public</option>
+	<label for="profile_vis">Profile visibility:</label>
+	<select id="profile_vis" name="profile_vis">
+		<option value="private" {% if visibility == 'private' %}selected{% endif %}>Private</option>
+		<option value="friends" {% if visibility == 'friends' %}selected{% endif %}>Friends only</option>
+		<option value="public" {% if visibility == 'public' %}selected{% endif %}>Public</option>
   	</select>
   	<input type="submit" value="Set visibility">
 </form>
