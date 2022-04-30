@@ -1,10 +1,11 @@
-CREATE TYPE stats_visibility AS ENUM ('public', 'friends', 'private');
+CREATE TYPE visibility AS ENUM ('public', 'friends', 'private');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-	stats_visibility stats_visibility NOT NULL
+	creation_date DATE NOT NULL,
+	visibility visibility NOT NULL
 );
 
 -- This table will be used both to keep track of friend requests and as a friends list
@@ -18,11 +19,11 @@ CREATE TABLE friends (
 
 -- Even inactive lobbies are stored in the database so that chat logs can be checked later
 CREATE TABLE lobbies (
-	id SERIAL PRIMARY KEY,
+	id INTEGER PRIMARY KEY,
 	owner_id INTEGER REFERENCES users NOT NULL,
-	player2_id INTEGER REFERENCES users NOT NULL,
+	player2_id INTEGER REFERENCES users,
 	active BOOL NOT NULL,
-	friends_only BOOL NOT NULL,
+	visibility visibility NOT NULL,
 	UNIQUE (owner_id, player2_id),
 	UNIQUE (player2_id, owner_id)
 	-- Last updated date could be added for automatically removing lobbies that users forgot to close
@@ -41,8 +42,6 @@ CREATE TABLE messages (
     content TEXT NOT NULL,
     sent_at TIMESTAMP NOT NULL
 );
-
-CREATE TYPE player_number AS ENUM ('1', '2');
 
 CREATE TABLE game_stats (
 	winner_id INTEGER REFERENCES users NOT NULL,
