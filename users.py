@@ -62,7 +62,7 @@ def id_from_username_if_exists(username: str) -> Result:
     try:
         return Result(True, db.session.execute(sql, {"username":username}).fetchone()[0])
     except:
-        return Result(False, f"Cannot find user {username}.")
+        return Result(False, f"invalid_username")
 
 def username_from_id(id: int) -> int:
     sql = "SELECT username FROM users WHERE id=:id"
@@ -104,9 +104,9 @@ def send_friend_req(to_username: str) -> Result:
             sql = "INSERT INTO friends (sender_id, recipient_id, accepted) VALUES (:from_id, :to_id, False)"
             db.session.execute(sql, {"from_id": user_id(), "to_id": to_id.result_or_msg})
             db.session.commit()
-            return Result(True, "")
+            return Result(True, "friend_req_sent")
         except:
-            return Result(False, "Can't add a friend that is already on your friends list or in your sent friend requests.")
+            return Result(False, "friend_or_req_exists")
     else:
         return to_id
 
