@@ -110,14 +110,14 @@ def stats():
 def friends():
     if users.is_logged_in():
         if request.method == "GET":
-            err_msg = request.args.get("err_msg", "")
+            msg_name = request.args.get("msg_name", "")
             return render_template(
                 "friends.html", 
                 logged_in=True,
                 friends=users.friends_of_user(),
                 friend_reqs_in=users.friend_reqs_to_user(),
                 friend_reqs_out=users.friend_reqs_from_user(),
-                err_msg=err_msg
+                msg_name=msg_name
             )
         if request.method == "POST":
             redirect_to = url_for(".friends")
@@ -131,12 +131,14 @@ def friends():
                     users.remove_friend(int(request.form["id"]))
                 elif request.form["action"] == "send_friend_req":
                     if len(request.form["username"]) < 2:
-                        redirect_to = url_for(".friends", err_msg="Can't send friend request, because username should be at least 2 characters long.") 
+                        redirect_to = url_for(".friends", msg_name="short_username") 
+                    if request.form["username"] == users.username():
+                        redirect_to = url_for(".friends", msg_name="friend_req_to_self") 
                     else:
                         result = users.send_friend_req(request.form["username"])
                         if not result.success:
                             #This error message should be converted to error message names as well, so that all the UI related things can be seen in the html
-                            redirect_to = url_for(".friends", err_msg=result.result_or_msg) 
+                            redirect_to = url_for(".friends", msg_name=result.result_or_msg) 
             return redirect(redirect_to)
     else:
         redirect_to_needs_login()
