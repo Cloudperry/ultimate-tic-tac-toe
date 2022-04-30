@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<h1>
-	<a href="/">Go back to frontpage</a>
-</h1>
-
+{% extends "layout.html" %}
+{% block content %}
 <p>
 {% if err_name == "pws_not_matching" %}
 The given passwords don't match.
@@ -27,3 +25,4 @@ The password is too short. It needs to be at least 6 characters long.
 	</p>
 	<input type="submit" value="Create account">
 </form>
+{% endblock %}
