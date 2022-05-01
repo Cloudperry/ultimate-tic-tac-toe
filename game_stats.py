@@ -25,6 +25,6 @@ def parse_game_for_user(game: dict) -> dict:
 
 def user_n_last_games(n: int):
     sql = "SELECT * FROM game_stats WHERE winner_id=:id OR loser_id=:id ORDER BY played_on"
-    games = db.session.execute(sql, {"id":users.user_id()}).all()
-    games = [qr._mapping for qr in games]
+    games_raw = db.session.execute(sql, {"id":users.user_id()}).all()
+    games = [qr._mapping for qr in games_raw]
     return list(map(parse_game_for_user, games))
