@@ -1,10 +1,15 @@
 from flask import redirect, render_template, request, url_for, session, abort
 from werkzeug.wrappers.response import Response
 from init import app
+#User modules
 import users, game_stats, lobbies
 
 def redirect_to_needs_login() -> Response:
     return redirect(url_for('.error', msg="Can't access user stats while not logged in."))
+
+def check_csrf():
+    if request.form.get("login_token", "") != session["login_token"]:
+        abort(403)
 
 @app.route("/")
 def index():
@@ -20,7 +25,7 @@ def login():
     if request.method == "GET":
         err_name=request.args.get("err_name", "")
         return render_template("login.html", logged_in=users.is_logged_in(), err_name=err_name)
-    if request.method == "POST":
+    elif request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         redirect_to = url_for(".index")
@@ -38,7 +43,7 @@ def register():
     if request.method == "GET":
         err_name=request.args.get("err_name", "")
         return render_template("register.html", logged_in=users.is_logged_in(), err_name=err_name)
-    if request.method == "POST":
+    elif request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         password_rep = request.form["password_rep"]
@@ -57,41 +62,50 @@ def register():
 def account():
     if users.is_logged_in():
         if request.method == "GET":
-            return render_template("account.html", logged_in=True, username=users.username(), stats_vis=users.stats_vis()) 
-        if request.method == "POST": 
-            redirect_to = url_for(".account") # Show account page again if there were no errors
-            if request.form.get("login_token", "") != session["login_token"]:
-                abort(403)
-            else:
-                if request.form["action"] == "password_change":
-                    old_password = request.form["old_password"]
-                    password = request.form["password"]
-                    password_rep = request.form["password_rep"]
-                    if password_rep != password:
-                        redirect_to = url_for(".account", err_name="pws_not_matching")
-                    elif users.update_password(old_password, password):
-                        redirect_to = url_for(".account", err_name="pw_updated")
-                    else:
-                        redirect_to = url_for(".account", err_name="wrong_pw")
-                elif request.form["action"] == "set_stats_vis":
-                    users.set_stats_vis(request.form["stats_vis"])
+            return render_template("account.html", logged_in=True, username=users.username(), profile_vis=users.profile_vis()) 
+        elif request.method == "POST": 
+            check_csrf() #The code below will not get executed if the request is a CSRF attempt
+            redirect_to = url_for(".account") #Show account page again if there were no errors
+            if request.form["action"] == "password_change":
+                old_password = request.form["old_password"]
+                password = request.form["password"]
+                password_rep = request.form["password_rep"]
+                if password_rep != password:
+                    redirect_to = url_for(".account", err_name="pws_not_matching")
+                elif users.update_password(old_password, password):
+                    redirect_to = url_for(".account", err_name="pw_updated")
+                else:
+                    redirect_to = url_for(".account", err_name="wrong_pw")
+            elif request.form["action"] == "set_profile_vis":
+                print(request.form["profile_vis"])
+                users.set_profile_vis(request.form["profile_vis"])
             return redirect(redirect_to)
     else:
         return redirect_to_needs_login() 
 
-@app.route("/lobbies")
+@app.route("/lobby-list", methods=["GET", "POST"])
 def play():
-    return render_template("lobby-list.html", logged_in=users.is_logged_in())
+    if request.method == "GET":
+        lobby_list = lobbies.lobby_list()
+        owned_lobby_id = lobbies.owned_lobby_if_exists()
+        return render_template("lobby-list.html", logged_in=users.is_logged_in(), lobby_list=lobby_list, owned_lobby_id=owned_lobby_id)
+    elif request.method == "POST":
+        if users.is_logged_in():
+            check_csrf()
+            lobby_id = lobbies.new_lobby(request.form["visibility"])
+            return redirect("/lobby/" + lobby_id)
+        else:
+            return redirect_to_needs_login()
+
+@app.route("/lobby/<lobby_id>")
+def lobby(lobby_id: str):
+    return render_template("lobby.html", lobby_id=lobby_id, logged_in=users.is_logged_in())
 
 #The game/lobby pages will be entered by clicking a button in /lobbies 
 #(or by clicking a join link if I implement that)
-@app.route("/game/<int:lobby_id>")
-def game(lobby_id: int):
+@app.route("/game/<lobby_id>")
+def game(lobby_id: str):
     return render_template("game.html", lobby_id=lobby_id, logged_in=users.is_logged_in())
-
-@app.route("/lobby/<int:lobby_id>")
-def lobby(lobby_id: int):
-    return render_template("lobby.html", lobby_id=lobby_id, logged_in=users.is_logged_in())
 
 @app.route("/stats")
 def stats():
@@ -119,26 +133,24 @@ def friends():
                 friend_reqs_out=users.friend_reqs_from_user(),
                 msg_name=msg_name
             )
-        if request.method == "POST":
+        elif request.method == "POST":
+            check_csrf()
             redirect_to = url_for(".friends")
-            if request.form["login_token"] != session["login_token"]:
-                abort(403)
-            else:
-                if request.form["action"] == "accept_friend_req":
-                    #It's safe to parse id as an int, because it comes from a hidden field of the form, that the user cannot modify in normal use
-                    users.accept_friend_req(int(request.form["id"])) 
-                elif request.form["action"] == "remove_friend":
-                    users.remove_friend(int(request.form["id"]))
-                elif request.form["action"] == "send_friend_req":
-                    if len(request.form["username"]) < 2:
-                        redirect_to = url_for(".friends", msg_name="short_username") 
-                    if request.form["username"] == users.username():
-                        redirect_to = url_for(".friends", msg_name="friend_req_to_self") 
-                    else:
-                        result = users.send_friend_req(request.form["username"])
-                        if not result.success:
-                            #This error message should be converted to error message names as well, so that all the UI related things can be seen in the html
-                            redirect_to = url_for(".friends", msg_name=result.result_or_msg) 
+            if request.form["action"] == "accept_friend_req":
+                #It's safe to parse id as an int, because it comes from a hidden field of the form, that the user cannot modify in normal use
+                users.accept_friend_req(int(request.form["id"])) 
+            elif request.form["action"] == "remove_friend":
+                users.remove_friend(int(request.form["id"]))
+            elif request.form["action"] == "send_friend_req":
+                if len(request.form["username"]) < 2:
+                    redirect_to = url_for(".friends", msg_name="short_username") 
+                if request.form["username"] == users.username():
+                    redirect_to = url_for(".friends", msg_name="friend_req_to_self") 
+                else:
+                    result = users.send_friend_req(request.form["username"])
+                    if not result.success:
+                        #This error message should be converted to error message names as well, so that all the UI related things can be seen in the html
+                        redirect_to = url_for(".friends", msg_name=result.result_or_msg) 
             return redirect(redirect_to)
     else:
         redirect_to_needs_login()
