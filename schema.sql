@@ -4,8 +4,8 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-	creation_date DATE NOT NULL,
 	visibility visibility NOT NULL
+	creation_date DATE NOT NULL,
 );
 
 -- This table will be used both to keep track of friend requests and as a friends list
@@ -24,6 +24,7 @@ CREATE TABLE lobbies (
 	player2_id INTEGER REFERENCES users,
 	active BOOL NOT NULL,
 	visibility visibility NOT NULL,
+	spectators_allowed BOOL NOT NULL,
 	UNIQUE (owner_id, player2_id),
 	UNIQUE (player2_id, owner_id)
 	-- Last updated date could be added for automatically removing lobbies that users forgot to close
