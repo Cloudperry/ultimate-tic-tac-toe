@@ -1,7 +1,73 @@
 <!DOCTYPE html>
 {% extends "layout.html" %}
 {% block content %}
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='lobbies.css') }}">
-
-Game lobby creation/join page. Not yet implemented.
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='lobby-list.css') }}">
+{% if owned_lobby_id == None %}
+	<h1>
+		Create a game
+	</h1>
+	<table>
+		<form action="/lobby-list" method="post">
+			<input type="hidden" name="action" value="create_lobby">
+			<input type="hidden" name="login_token" value={{ session.login_token }} />
+			<input type="hidden" name="visibility" value="public">
+			<input type="submit" value="Create public game">
+		</form> &nbsp;&nbsp
+		<form action="/lobby-list" method="post">
+			<input type="hidden" name="action" value="create_lobby">
+			<input type="hidden" name="login_token" value={{ session.login_token }} />
+			<input type="hidden" name="visibility" value="friends">
+			<input type="submit" value="Create game for friends">
+		</form> &nbsp;&nbsp
+		<form action="/lobby-list" method="post">
+			<input type="hidden" name="action" value="create_lobby">
+			<input type="hidden" name="login_token" value={{ session.login_token }} />
+			<input type="hidden" name="visibility" value="private">
+			<input type="submit" value="Create hidden game">
+		</form>
+	</table>
+{% else %}
+	<h1>
+		<a href="/lobby/{{owned_lobby_id}}">Edit your lobby</a> &nbsp;&nbsp
+	</h1>
+{% endif %}
+<h1>
+	Join a game
+</h1>
+<p><div class="verticalScrollableTable">
+	<table>
+		<thead>
+  			<tr>
+				<th>Owner</th>
+				<th>Status</th>
+				<th>Join as player</th>
+				{% if spectators_allowed %} <th>Join as spectator</th> {% endif %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for lobby in lobby_list %}
+				<tr>
+					<td>{{lobby.owner}}</td>
+				    <td>{{lobby.status}}</td>     
+				    <td><form action="/lobby-list" method="post">
+						<input type="hidden" name="action" value="play">
+						<input type="hidden" name="login_token" value={{ session.login_token }} />
+						<input type="hidden" name="id" value={{lobby.id}} />
+						<input type="submit" value="Join">
+					</form></td>
+				<tr>
+				{% if spectators_allowed %}
+					<tr><td>
+						<form action="/lobby-list" method="post">
+							<input type="hidden" name="action" value="spectate">
+							<input type="hidden" name="login_token" value={{ session.login_token }} />
+							<input type="hidden" name="id" value={{lobby.id}} />
+							<input type="submit" value="Join">
+						</form>
+					</td><tr>
+				{% endif %}
+			{% endfor %}
+		</tbody>
+	</table>
+</div></p>
 {% endblock %}
