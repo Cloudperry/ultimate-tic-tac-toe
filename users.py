@@ -34,11 +34,10 @@ def update_password(old_password: str, password: str) -> bool:
         else:
             return False
 
-def set_profile_vis(visibility: str) -> bool:
+def set_profile_vis(visibility: str):
     sql = "UPDATE users SET visibility=:visibility WHERE id=:id"
     db.session.execute(sql, {"id":user_id(), "visibility":visibility})
     db.session.commit()
-    return True
 
 def profile_vis() -> str:
     sql = "SELECT visibility FROM users WHERE id=:id"
