@@ -17,12 +17,13 @@ CREATE TABLE friends (
 	UNIQUE (recipient_id, sender_id)
 );
 
+CREATE TYPE lobby_status AS ENUM ('ingame', 'open', 'inactive'); 
 -- Even inactive lobbies are stored in the database so that chat logs can be checked later
 CREATE TABLE lobbies (
 	id INTEGER PRIMARY KEY,
 	owner_id INTEGER REFERENCES users NOT NULL,
 	player2_id INTEGER REFERENCES users,
-	active BOOL NOT NULL,
+	active BOOL NOT NULL, --Replace this with lobby_status, so the app can redirect from the lobby page straight to the game when the lobby is in game
 	visibility visibility NOT NULL,
 	spectators_allowed BOOL NOT NULL,
 	UNIQUE (owner_id, player2_id),
