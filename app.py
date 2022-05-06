@@ -149,7 +149,6 @@ def friends():
                 else:
                     result = users.send_friend_req(request.form["username"])
                     if not result.success:
-                        #This error message should be converted to error message names as well, so that all the UI related things can be seen in the html
                         redirect_to = url_for(".friends", msg_name=result.result_or_msg) 
             return redirect(redirect_to)
     else:
