@@ -5,7 +5,10 @@ from init import app
 import users, game_stats, lobbies
 
 def redirect_to_needs_login() -> Response:
-    return redirect(url_for('.error', msg="Can't access user stats while not logged in."))
+    return redirect(url_for(".error", msg="Can't access user stats while not logged in."))
+
+def redirect_to_lobby(id: int) -> Response:
+    return redirect(url_for("lobby", lobby_id_b64=lobbies.lobby_id_to_b64(id)))
 
 def check_csrf():
     if request.form.get("login_token", "") != session["login_token"]:
@@ -77,7 +80,6 @@ def account():
                 else:
                     redirect_to = url_for(".account", err_name="wrong_pw")
             elif request.form["action"] == "set_profile_vis":
-                print(request.form["profile_vis"])
                 users.set_profile_vis(request.form["profile_vis"])
             return redirect(redirect_to)
     else:
@@ -85,24 +87,56 @@ def account():
 
 @app.route("/lobby-list", methods=["GET", "POST"])
 def play():
-    if request.method == "GET":
-        lobby_list = lobbies.lobby_list()
-        owned_lobby_id = lobbies.owned_lobby_if_exists()
-        return render_template("lobby-list.html", logged_in=users.is_logged_in(), lobby_list=lobby_list, owned_lobby_id=owned_lobby_id)
-    elif request.method == "POST":
-        if users.is_logged_in():
+    # This page is entirely locked behind login for now
+    # It could be changed if I implement spectating games
+    if users.is_logged_in(): 
+        if request.method == "GET":
+            lobby_list = lobbies.lobby_list()
+            curr_lobby_id, curr_lobby_id_b64 = lobbies.curr_lobby_if_exists(), None
+            if curr_lobby_id is not None:
+                curr_lobby_id_b64 = lobbies.lobby_id_to_b64(curr_lobby_id)
+            return render_template("lobby-list.html", logged_in=users.is_logged_in(), lobby_list=lobby_list, curr_lobby_id=curr_lobby_id_b64)
+        elif request.method == "POST":
+                check_csrf()
+                if request.form["action"] == "create_lobby":
+                    lobby_id = lobbies.new_lobby(request.form["visibility"])
+                    return redirect_to_lobby(lobby_id)
+                elif request.form["action"] == "play":
+                    lobby_id = int(request.form["id"])
+                    lobbies.join_lobby_as_player(lobby_id)
+                    return redirect_to_lobby(lobby_id)
+                elif request.form["action"] == "spectate":
+                    return redirect(url_for(".error", msg="Spectate is not yet implemented."))
+    else:
+        return redirect_to_needs_login()
+
+@app.route("/lobby/<lobby_id_b64>", methods=["GET", "POST"])
+def lobby(lobby_id_b64: str):
+    if users.is_logged_in(): 
+        lobby_id = lobbies.lobby_id_to_int(lobby_id_b64)
+        if request.method == "GET":
+            is_owner = lobbies.owned_lobby_if_exists() is not None
+            is_ready = lobbies.get_lobby_status(lobby_id)
+            return render_template(
+                "lobby.html", 
+                logged_in=users.is_logged_in(), 
+                lobby_id_b64=lobby_id_b64,
+                is_owner=is_owner,
+                is_ready=is_ready
+            )
+        elif request.method == "POST":
             check_csrf()
-            lobby_id = lobbies.new_lobby(request.form["visibility"])
-            return redirect("/lobby/" + lobby_id)
-        else:
-            return redirect_to_needs_login()
+            if request.form["action"] == "change_vis":
+                lobbies.set_lobby_vis(lobby_id, request.form["visibility"])
+                return redirect("/lobby/" + lobby_id_b64)
+            elif request.form["action"] == "delete":
+                lobbies.delete_lobby(lobby_id)
+                return redirect("/lobby-list")
+            elif request.form["action"] == "start":
+                return redirect("/game/" + lobby_id_b64)
+    else:
+        return redirect_to_needs_login()
 
-@app.route("/lobby/<lobby_id>")
-def lobby(lobby_id: str):
-    return render_template("lobby.html", lobby_id=lobby_id, logged_in=users.is_logged_in())
-
-#The game/lobby pages will be entered by clicking a button in /lobbies 
-#(or by clicking a join link if I implement that)
 @app.route("/game/<lobby_id>")
 def game(lobby_id: str):
     return render_template("game.html", lobby_id=lobby_id, logged_in=users.is_logged_in())
