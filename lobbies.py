@@ -1,4 +1,5 @@
 from init import db
+from flask import session
 from random import choice
 from enum import Enum
 import base64
@@ -25,7 +26,7 @@ def new_lobby(visibility: str) -> int:
     lobby_id = choice(tuple(id for id in range(0, 2**24-1) if id not in used_ids))
     sql = """INSERT INTO lobbies (id, owner_id, active, visibility, spectators_allowed) VALUES 
              (:lobby_id, :user_id, True, :visibility, False)"""
-    db.session.execute(sql, {"lobby_id": lobby_id, "user_id": users.user_id(), "visibility": visibility})
+    db.session.execute(sql, {"lobby_id": lobby_id, "user_id": session["id"], "visibility": visibility})
     db.session.commit()
     return lobby_id
 
@@ -51,17 +52,17 @@ def leave_curr_lobby_if_exists():
 def join_lobby_as_player(id: int):
     leave_curr_lobby_if_exists()
     sql = "UPDATE lobbies SET player2_id = :user_id WHERE id = :lobby_id"
-    db.session.execute(sql, {"user_id": users.user_id(), "lobby_id": id})
+    db.session.execute(sql, {"user_id": session["id"], "lobby_id": id})
     db.session.commit()
 
 def owned_lobby_if_exists() -> None|int:
     sql = "SELECT id FROM lobbies WHERE active AND owner_id = :user_id"
-    return db.session.scalars(sql, {"user_id": users.user_id()}).first()
+    return db.session.scalars(sql, {"user_id": session["id"]}).first()
     # It is fine to return the result of the query as is, because callers of this function will expect None if there were no lobbies
 
 def joined_lobby_if_exists() -> None|int:
     sql = "SELECT id FROM lobbies WHERE active AND player2_id = :user_id"
-    return db.session.scalars(sql, {"user_id": users.user_id()}).first()
+    return db.session.scalars(sql, {"user_id": session["id"]}).first()
 
 def curr_lobby_if_exists() -> None|int:
     id = joined_lobby_if_exists()
@@ -93,6 +94,6 @@ def get_lobby_status(id: int) -> bool:
 def lobby_list() -> map:
     sql = """SELECT id, owner_id, player2_id FROM lobbies
     WHERE active AND visibility != 'private' AND owner_id != :user_id AND (player2_id != :user_id OR player2_id IS NULL)"""
-    lobbies_raw = db.session.execute(sql, {"user_id": users.user_id()}).all()
+    lobbies_raw = db.session.execute(sql, {"user_id": session["id"]}).all()
     lobbies = [lobby._mapping for lobby in lobbies_raw]
     return map(parse_lobby, lobbies)

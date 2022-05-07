@@ -18,7 +18,7 @@ def check_csrf():
 def index():
     return render_template(
         "index.html",
-        logged_in=users.is_logged_in(),
+        logged_in=session.get("id", 0) != 0,
         games_played=game_stats.games_played(),
         active_games=lobbies.active_games()
     )
@@ -27,7 +27,7 @@ def index():
 def login():
     if request.method == "GET":
         err_name=request.args.get("err_name", "")
-        return render_template("login.html", logged_in=users.is_logged_in(), err_name=err_name)
+        return render_template("login.html", logged_in=session.get("id", 0) != 0, err_name=err_name)
     elif request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -45,7 +45,7 @@ def logout():
 def register():
     if request.method == "GET":
         err_name=request.args.get("err_name", "")
-        return render_template("register.html", logged_in=users.is_logged_in(), err_name=err_name)
+        return render_template("register.html", logged_in=users.session.get("id", 0) != 0, err_name=err_name)
     elif request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -63,7 +63,7 @@ def register():
 
 @app.route("/account", methods=["GET", "POST"])
 def account():
-    if users.is_logged_in():
+    if session.get("id", 0) != 0:
         if request.method == "GET":
             return render_template("account.html", logged_in=True, username=users.username(), profile_vis=users.profile_vis()) 
         elif request.method == "POST": 
@@ -89,13 +89,13 @@ def account():
 def play():
     # This page is entirely locked behind login for now
     # It could be changed if I implement spectating games
-    if users.is_logged_in(): 
+    if session.get("id", 0): 
         if request.method == "GET":
             lobby_list = lobbies.lobby_list()
             curr_lobby_id, curr_lobby_id_b64 = lobbies.curr_lobby_if_exists(), None
             if curr_lobby_id is not None:
                 curr_lobby_id_b64 = lobbies.lobby_id_to_b64(curr_lobby_id)
-            return render_template("lobby-list.html", logged_in=users.is_logged_in(), lobby_list=lobby_list, curr_lobby_id=curr_lobby_id_b64)
+            return render_template("lobby-list.html", logged_in=True, lobby_list=lobby_list, curr_lobby_id=curr_lobby_id_b64)
         elif request.method == "POST":
                 check_csrf()
                 if request.form["action"] == "create_lobby":
@@ -112,14 +112,14 @@ def play():
 
 @app.route("/lobby/<lobby_id_b64>", methods=["GET", "POST"])
 def lobby(lobby_id_b64: str):
-    if users.is_logged_in(): 
+    if session.get("id", 0) != 0: 
         lobby_id = lobbies.lobby_id_to_int(lobby_id_b64)
         if request.method == "GET":
             is_owner = lobbies.owned_lobby_if_exists() is not None
             is_ready = lobbies.get_lobby_status(lobby_id)
             return render_template(
                 "lobby.html", 
-                logged_in=users.is_logged_in(), 
+                logged_in=True, 
                 lobby_id_b64=lobby_id_b64,
                 is_owner=is_owner,
                 is_ready=is_ready
@@ -139,11 +139,11 @@ def lobby(lobby_id_b64: str):
 
 @app.route("/game/<lobby_id>")
 def game(lobby_id: str):
-    return render_template("game.html", lobby_id=lobby_id, logged_in=users.is_logged_in())
+    return render_template("game.html", lobby_id=lobby_id, logged_in=session.get("id", 0) != 0)
 
 @app.route("/stats")
 def stats():
-    if users.is_logged_in():
+    if session.get("id", 0) != 0:
         return render_template(
             "stats.html", 
             logged_in=True,
@@ -156,7 +156,7 @@ def stats():
 
 @app.route("/friends", methods=["GET", "POST"])
 def friends():
-    if users.is_logged_in():
+    if session.get("id", 0) != 0:
         if request.method == "GET":
             msg_name = request.args.get("msg_name", "")
             return render_template(
