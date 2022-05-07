@@ -13,7 +13,8 @@ def login(username: str, password: str) -> bool:
         return False
     else:
         if check_password_hash(user.password, password):
-            session["user_id"] = user.id
+            session["id"] = user.id
+            print(session["id"])
             session["login_token"] = token_hex(16)
             return True
         else:
@@ -21,7 +22,7 @@ def login(username: str, password: str) -> bool:
 
 def update_password(old_password: str, password: str) -> bool:
     sql = "SELECT id, password FROM users WHERE id=:id"
-    user = db.session.execute(sql, {"id":user_id()}).fetchone()
+    user = db.session.execute(sql, {"id":session["id"]}).fetchone()
     if not user:
         return False
     else:
@@ -36,15 +37,15 @@ def update_password(old_password: str, password: str) -> bool:
 
 def set_profile_vis(visibility: str):
     sql = "UPDATE users SET visibility=:visibility WHERE id=:id"
-    db.session.execute(sql, {"id":user_id(), "visibility":visibility})
+    db.session.execute(sql, {"id":session["id"], "visibility":visibility})
     db.session.commit()
 
 def profile_vis() -> str:
     sql = "SELECT visibility FROM users WHERE id=:id"
-    return db.session.execute(sql, {"id":user_id()}).fetchone()[0]
+    return db.session.execute(sql, {"id":session["id"]}).fetchone()[0]
 
 def logout():
-    del session["user_id"]
+    del session["id"]
 
 def register(username: str, password: str) -> bool:
     password_hash = generate_password_hash(password)
@@ -68,13 +69,7 @@ def username_from_id(id: int) -> int:
     return db.session.execute(sql, {"id":id}).fetchone()[0]
 
 def username() -> int:
-    return username_from_id(user_id())
-
-def user_id() -> int:
-    return session.get("user_id", 0)
-
-def is_logged_in():
-    return user_id() != 0
+    return username_from_id(session["id"])
 
 User = namedtuple("User", ["id", "name"])
 
@@ -83,17 +78,17 @@ def friends_of_user():
 WHEN sender_id=:id THEN recipient_id 
 ELSE sender_id END
 FROM friends WHERE (sender_id=:id OR recipient_id=:id) AND accepted"""
-    friend_ids = db.session.execute(sql, {"id":user_id()}).fetchall()
+    friend_ids = db.session.execute(sql, {"id":session["id"]}).fetchall()
     return map(lambda id: User(id[0], username_from_id(id[0])), friend_ids)
 
 def friend_reqs_to_user():
     sql = "SELECT sender_id FROM friends WHERE recipient_id=:id AND NOT accepted"
-    friend_ids = db.session.execute(sql, {"id":user_id()}).fetchall()
+    friend_ids = db.session.execute(sql, {"id":session["id"]}).fetchall()
     return map(lambda id: User(id[0], username_from_id(id[0])), friend_ids)
 
 def friend_reqs_from_user():
     sql = "SELECT recipient_id FROM friends WHERE sender_id=:id AND NOT accepted"
-    friend_ids = db.session.execute(sql, {"id":user_id()}).fetchall()
+    friend_ids = db.session.execute(sql, {"id":session["id"]}).fetchall()
     return map(lambda id: User(id[0], username_from_id(id[0])), friend_ids)
 
 def send_friend_req(to_username: str) -> Result:
@@ -101,7 +96,7 @@ def send_friend_req(to_username: str) -> Result:
     if to_id.success:
         try:
             sql = "INSERT INTO friends (sender_id, recipient_id, accepted) VALUES (:from_id, :to_id, False)"
-            db.session.execute(sql, {"from_id": user_id(), "to_id": to_id.result_or_msg})
+            db.session.execute(sql, {"from_id": session["id"], "to_id": to_id.result_or_msg})
             db.session.commit()
             return Result(True, "friend_req_sent")
         except:
@@ -111,10 +106,10 @@ def send_friend_req(to_username: str) -> Result:
 
 def accept_friend_req(accept_id: int):
     sql = "UPDATE friends SET accepted = True WHERE sender_id=:accept_id AND recipient_id=:user_id OR sender_id=:user_id AND recipient_id=:accept_id"
-    db.session.execute(sql, {"user_id": user_id(), "accept_id": accept_id})
+    db.session.execute(sql, {"user_id": session["id"], "accept_id": accept_id})
     db.session.commit()
 
 def remove_friend(remove_id: int):
     sql = "DELETE FROM friends WHERE sender_id=:remove_id AND recipient_id=:user_id OR sender_id=:user_id AND recipient_id=:remove_id"
-    db.session.execute(sql, {"user_id": user_id(), "remove_id": remove_id})
+    db.session.execute(sql, {"user_id": session["id"], "remove_id": remove_id})
     db.session.commit()
