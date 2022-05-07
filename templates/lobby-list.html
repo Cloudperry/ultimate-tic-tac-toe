@@ -2,37 +2,36 @@
 {% extends "layout.html" %}
 {% block content %}
 <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='lobby-list.css') }}">
-{% if owned_lobby_id == None %}
+{% if curr_lobby_id != None %}
 	<h1>
-		Create a game
-	</h1>
-	<table>
-		<form action="/lobby-list" method="post">
-			<input type="hidden" name="action" value="create_lobby">
-			<input type="hidden" name="login_token" value={{ session.login_token }} />
-			<input type="hidden" name="visibility" value="public">
-			<input type="submit" value="Create public game">
-		</form> &nbsp;&nbsp
-		<form action="/lobby-list" method="post">
-			<input type="hidden" name="action" value="create_lobby">
-			<input type="hidden" name="login_token" value={{ session.login_token }} />
-			<input type="hidden" name="visibility" value="friends">
-			<input type="submit" value="Create game for friends">
-		</form> &nbsp;&nbsp
-		<form action="/lobby-list" method="post">
-			<input type="hidden" name="action" value="create_lobby">
-			<input type="hidden" name="login_token" value={{ session.login_token }} />
-			<input type="hidden" name="visibility" value="private">
-			<input type="submit" value="Create hidden game">
-		</form>
-	</table>
-{% else %}
-	<h1>
-		<a href="/lobby/{{owned_lobby_id}}">Edit your lobby</a> &nbsp;&nbsp
+		<a href="/lobby/{{curr_lobby_id}}">Go to your current lobby</a> &nbsp;&nbsp
 	</h1>
 {% endif %}
 <h1>
-	Join a game
+	Create a game{% if curr_lobby_id != None %} (This will automatically leave/delete the lobby you are in right now.) {% endif %}
+</h1>
+<table>
+	<form action="/lobby-list" method="post">
+		<input type="hidden" name="action" value="create_lobby">
+		<input type="hidden" name="login_token" value={{ session.login_token }} />
+		<input type="hidden" name="visibility" value="public">
+		<input type="submit" value="Create public game">
+	</form> &nbsp;&nbsp
+	<form action="/lobby-list" method="post">
+		<input type="hidden" name="action" value="create_lobby">
+		<input type="hidden" name="login_token" value={{session.login_token}} />
+		<input type="hidden" name="visibility" value="friends">
+		<input type="submit" value="Create game for friends">
+	</form> &nbsp;&nbsp
+	<form action="/lobby-list" method="post">
+		<input type="hidden" name="action" value="create_lobby">
+		<input type="hidden" name="login_token" value={{session.login_token}} />
+		<input type="hidden" name="visibility" value="private">
+		<input type="submit" value="Create hidden game">
+	</form>
+</table>
+<h1>
+	Join a game{% if curr_lobby_id != None %} (This will automatically leave/delete the lobby you are in right now.) {% endif %}
 </h1>
 <p><div class="verticalScrollableTable">
 	<table>
@@ -51,7 +50,7 @@
 				    <td>{{lobby.status}}</td>     
 				    <td><form action="/lobby-list" method="post">
 						<input type="hidden" name="action" value="play">
-						<input type="hidden" name="login_token" value={{ session.login_token }} />
+						<input type="hidden" name="login_token" value={{session.login_token}} />
 						<input type="hidden" name="id" value={{lobby.id}} />
 						<input type="submit" value="Join">
 					</form></td>
@@ -60,7 +59,7 @@
 					<tr><td>
 						<form action="/lobby-list" method="post">
 							<input type="hidden" name="action" value="spectate">
-							<input type="hidden" name="login_token" value={{ session.login_token }} />
+							<input type="hidden" name="login_token" value={{session.login_token}} />
 							<input type="hidden" name="id" value={{lobby.id}} />
 							<input type="submit" value="Join">
 						</form>
