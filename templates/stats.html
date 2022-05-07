@@ -24,7 +24,7 @@
 		</thead>
 		<tbody>
 			{% for game in game_history %}
-				<tr><td>{{game.opponent}}</td> <td>{{game.result}}</td> <td>{{game.move_count}}</td> <td>{{game.played_on}}</td></tr>
+				<tr><td>{{game.opponent}}</td> <td>{% if game.is_win %} Win {% else %} Loss {% endif %}</td> <td>{{game.move_count}}</td> <td>{{game.played_on}}</td></tr>
 			{% endfor %}
 		</tbody>
 	</table>
