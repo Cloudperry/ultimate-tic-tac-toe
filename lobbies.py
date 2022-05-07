@@ -11,7 +11,7 @@ import users
 # Lobby ids will mostly be passed around as integers, but they also have a base64 representation for use in the urls
 # Function names that return or work with the base64 representation will have b64 in their name
 def active_games() -> int:
-    return db.session.execute("SELECT count(*) FROM lobbies WHERE active").fetchone()[0]
+    return db.session.execute("SELECT count(*) FROM lobbies WHERE status != 'inactive'").fetchone()[0]
 
 def lobby_id_to_b64(id: int) -> str:
     return base64.urlsafe_b64encode(id.to_bytes(3, byteorder="big")).decode()
@@ -24,19 +24,19 @@ def new_lobby(visibility: str) -> int:
     used_ids = set(db.session.scalars("SELECT id FROM lobbies"))
     #Id generation takes maybe 0.5 sec even on a fast computer
     lobby_id = choice(tuple(id for id in range(0, 2**24-1) if id not in used_ids))
-    sql = """INSERT INTO lobbies (id, owner_id, active, visibility, spectators_allowed) VALUES 
-             (:lobby_id, :user_id, True, :visibility, False)"""
+    sql = """INSERT INTO lobbies (id, owner_id, status, visibility, spectators_allowed) VALUES 
+             (:lobby_id, :user_id, 'waiting', :visibility, False)"""
     db.session.execute(sql, {"lobby_id": lobby_id, "user_id": session["id"], "visibility": visibility})
     db.session.commit()
     return lobby_id
 
 def leave_lobby(id: int):
-    sql = """UPDATE lobbies SET player2_id = NULL WHERE id = :lobby_id"""
+    sql = """UPDATE lobbies SET player2_id = NULL, status = 'waiting' WHERE id = :lobby_id"""
     db.session.execute(sql, {"lobby_id": id})
     db.session.commit()
 
 def delete_lobby(id: int):
-    sql = """UPDATE lobbies SET active = False WHERE id = :lobby_id"""
+    sql = """UPDATE lobbies SET status = 'inactive' WHERE id = :lobby_id"""
     db.session.execute(sql, {"lobby_id": id})
     db.session.commit()
 
@@ -51,17 +51,17 @@ def leave_curr_lobby_if_exists():
 
 def join_lobby_as_player(id: int):
     leave_curr_lobby_if_exists()
-    sql = "UPDATE lobbies SET player2_id = :user_id WHERE id = :lobby_id"
+    sql = "UPDATE lobbies SET player2_id = :user_id, status = 'ready' WHERE id = :lobby_id"
     db.session.execute(sql, {"user_id": session["id"], "lobby_id": id})
     db.session.commit()
 
 def owned_lobby_if_exists() -> None|int:
-    sql = "SELECT id FROM lobbies WHERE active AND owner_id = :user_id"
+    sql = "SELECT id FROM lobbies WHERE status != 'inactive' AND owner_id = :user_id"
     return db.session.scalars(sql, {"user_id": session["id"]}).first()
     # It is fine to return the result of the query as is, because callers of this function will expect None if there were no lobbies
 
 def joined_lobby_if_exists() -> None|int:
-    sql = "SELECT id FROM lobbies WHERE active AND player2_id = :user_id"
+    sql = "SELECT id FROM lobbies WHERE status != 'inactive' AND player2_id = :user_id"
     return db.session.scalars(sql, {"user_id": session["id"]}).first()
 
 def curr_lobby_if_exists() -> None|int:
@@ -75,25 +75,55 @@ def set_lobby_vis(id: int, visibility: str):
     db.session.execute(sql, {"id":id, "visibility":visibility})
     db.session.commit()
 
-def parse_lobby(lobby: dict) -> dict: # Switch this parser to set status as a bool like the function below
+class LobbyStatus(Enum):
+    ingame = 1
+    ready = 2 
+    waiting = 3
+    inactive = 4
+
+def parse_lobby_for_list(lobby: dict) -> dict:
+    return parse_lobby(lobby, for_lobby_list=True)
+
+def parse_lobby(lobby: dict, for_lobby_list=False) -> dict:
     result = {}
-    result["id"] = lobby["id"]
     result["owner_id"] = lobby["owner_id"]
     result["owner"] = users.username_from_id(lobby["owner_id"])
-    if lobby["player2_id"] == None:
-        result["status"] = "Waiting for player"
+    result["player2_id"] = lobby["player2_id"]
+    result["player2"] = users.username_from_id(lobby["owner_id"])
+    result["id_b64"] = lobby_id_to_b64(lobby["id"])
+    if for_lobby_list:
+        result["id"] = lobby["id"]
     else:
-        result["status"] = "Full"
+        result["status"] = LobbyStatus[lobby["status"]]
     return result
 
-def get_lobby_status(id: int) -> bool:
-    sql = "SELECT player2_id IS NOT NULL FROM lobbies WHERE id = :id"
-    return db.session.scalars(sql, {"id": id}).first()
+def get_parsed_lobby(id: int) -> dict:
+    sql = "SELECT id, owner_id, player2_id, status FROM lobbies WHERE id = :id"
+    lobby = db.session.execute(sql, {"id": id}).one()
+    return parse_lobby(lobby._mapping)
 
 # Friends only lobbies are not yet being filtered out here
 def lobby_list() -> map:
-    sql = """SELECT id, owner_id, player2_id FROM lobbies
-    WHERE active AND visibility != 'private' AND owner_id != :user_id AND (player2_id != :user_id OR player2_id IS NULL)"""
+    sql = """SELECT id, owner_id, player2_id, status FROM lobbies
+    WHERE status != 'inactive' AND visibility != 'private' AND owner_id != :user_id AND (player2_id != :user_id OR player2_id IS NULL)"""
     lobbies_raw = db.session.execute(sql, {"user_id": session["id"]}).all()
     lobbies = [lobby._mapping for lobby in lobbies_raw]
-    return map(parse_lobby, lobbies)
+    return map(parse_lobby_for_list, lobbies)
+
+def get_messages(id: int):
+    sql = """SELECT u.username, m.content, to_char(m.sent_at, 'DD/MM/YYYY HH24:MI:SS') AS sent_at
+    FROM users u, messages m 
+    WHERE m.lobby_id = :id AND m.user_id = u.id ORDER BY m.sent_at"""
+    messages_raw = db.session.execute(sql, {"id": id}).all()
+    messages = [message._mapping for message in messages_raw]
+    return messages
+
+def send_msg_in(id: int, content: str):
+    sql = """INSERT INTO messages (lobby_id, user_id, content, sent_at) VALUES (:lobby_id, :user_id, :content, current_timestamp)"""
+    db.session.execute(sql, {"lobby_id": id, "user_id": session["id"], "content": content})
+    db.session.commit()
+
+def start_game_in(id: int):
+    sql = "UPDATE lobbies SET status = 'ingame' WHERE id=:id"
+    db.session.execute(sql, {"id": id})
+    db.session.commit()
