@@ -15,17 +15,17 @@ def user_games_played() -> int: #This function hasn't been tested yet
 def parse_game_for_user(game: dict) -> dict:
     result = {}
     if game["winner_id"] == session["id"]:
-        result["result"] = "win"
+        result["is_win"] = True
         result["opponent"] = users.username_from_id(game["loser_id"])
     else:
-        result["result"] = "loss"
+        result["is_win"] = False
         result["opponent"] = users.username_from_id(game["winner_id"])
     result["move_count"] = game["move_count"]
     result["played_on"] = game["played_on"]
     return result
 
 def user_n_last_games(n: int):
-    sql = "SELECT * FROM game_stats WHERE winner_id=:id OR loser_id=:id ORDER BY played_on"
+    sql = "SELECT winner_id, loser_id, played_on, move_count FROM game_stats WHERE winner_id=:id OR loser_id=:id ORDER BY played_on"
     games_raw = db.session.execute(sql, {"id":session["id"]}).all()
     games = [qr._mapping for qr in games_raw]
     return list(map(parse_game_for_user, games))
