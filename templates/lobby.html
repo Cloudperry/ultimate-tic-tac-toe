@@ -1,6 +1,55 @@
 <!DOCTYPE html>
 {% extends "layout.html" %}
 {% block content %}
-
-Page for editing lobby settings and the lobby owner can start the game from here. Not yet implemented. You are in lobby {{lobby_id}}.
+{% if is_owner %}
+	<h1>
+		Change lobby visibility
+	</h1>
+	<table>
+		<form action="/lobby/{{lobby_id_b64}}" method="post">
+			<input type="hidden" name="action" value="change_vis">
+			<input type="hidden" name="login_token" value={{session.login_token}} />
+			<input type="hidden" name="visibility" value="public">
+			<input type="submit" value="Set to public">
+		</form> &nbsp;&nbsp
+		<form action="/lobby/{{lobby_id_b64}}" method="post">
+			<input type="hidden" name="action" value="change_vis">
+			<input type="hidden" name="login_token" value={{session.login_token}} />
+			<input type="hidden" name="visibility" value="friends">
+			<input type="submit" value="Set to friends only">
+		</form> &nbsp;&nbsp
+		<form action="/lobby/{{lobby_id_b64}}" method="post">
+			<input type="hidden" name="action" value="change_vis">
+			<input type="hidden" name="login_token" value={{session.login_token}} />
+			<input type="hidden" name="visibility" value="private">
+			<input type="submit" value="Set to hidden">
+		</form>
+	</table>
+	<h1>
+		Delete lobby
+	</h1>
+	<form action="/lobby/{{lobby_id_b64}}" method="post">
+		<input type="hidden" name="action" value="delete">
+		<input type="hidden" name="login_token" value={{session.login_token}} />
+		<input type="submit" value="Delete">
+	</form> &nbsp;&nbsp
+	{% if is_ready %}
+		<h1>
+			Start game
+		</h1>
+		<form action="/lobby/{{lobby_id_b64}}" method="post">
+			<input type="hidden" name="action" value="start">
+			<input type="hidden" name="login_token" value={{session.login_token}} />
+			<input type="submit" value="Start">
+		</form> &nbsp;&nbsp
+	{% else %}
+		<h1>
+			Waiting for second player.
+		</h1>
+	{% endif %}
+{% else %}
+	<h1>
+		Waiting for lobby owner to start the game. You will be automatically redirected to the game when it starts (when I implement that).
+	</h1>
+{% endif %}
 {% endblock %}
