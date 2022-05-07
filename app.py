@@ -114,15 +114,16 @@ def play():
 def lobby(lobby_id_b64: str):
     if session.get("id", 0) != 0: 
         lobby_id = lobbies.lobby_id_to_int(lobby_id_b64)
+        lobby_data = lobbies.get_parsed_lobby(lobby_id)
         if request.method == "GET":
-            is_owner = lobbies.owned_lobby_if_exists() is not None
-            is_ready = lobbies.get_lobby_status(lobby_id)
+            if lobby_data["status"] == lobbies.LobbyStatus.ingame:
+                return redirect("/game/" + lobby_id_b64)
             return render_template(
                 "lobby.html", 
                 logged_in=True, 
-                lobby_id_b64=lobby_id_b64,
-                is_owner=is_owner,
-                is_ready=is_ready
+                lobby=lobby_data,
+                messages=lobbies.get_messages(lobby_id),
+                LobbyStatus=lobbies.LobbyStatus
             )
         elif request.method == "POST":
             check_csrf()
@@ -132,8 +133,18 @@ def lobby(lobby_id_b64: str):
             elif request.form["action"] == "delete":
                 lobbies.delete_lobby(lobby_id)
                 return redirect("/lobby-list")
+            elif request.form["action"] == "leave":
+                lobbies.leave_lobby(lobby_id)
+                return redirect("/lobby-list")
+            elif request.form["action"] == "kick":
+                lobbies.leave_lobby(lobby_id)
+                return redirect("/lobby/" + lobby_id_b64)
+            elif request.form["action"] == "send_msg":
+                lobbies.send_msg_in(lobby_id, request.form["content"])
+                return redirect("/lobby/" + lobby_id_b64)
             elif request.form["action"] == "start":
-                return redirect("/game/" + lobby_id_b64)
+                lobbies.start_game_in(lobby_id)
+                return redirect("/lobby/" + lobby_id_b64)
     else:
         return redirect_to_needs_login()
 
