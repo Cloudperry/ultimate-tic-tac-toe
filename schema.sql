@@ -4,8 +4,8 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-	visibility visibility NOT NULL
-	creation_date DATE NOT NULL,
+	visibility visibility NOT NULL,
+	creation_date DATE NOT NULL
 );
 
 -- This table will be used both to keep track of friend requests and as a friends list
