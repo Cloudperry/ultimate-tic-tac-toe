@@ -3,7 +3,7 @@ from flask import session
 from random import choice
 from enum import Enum
 import base64
-#User modules
+# Modules from this project
 import users
 
 # This module is for db interaction and core logic related to game lobbies
@@ -91,9 +91,8 @@ def parse_lobby(lobby: dict, for_lobby_list=False) -> dict:
     result["player2_id"] = lobby["player2_id"]
     result["player2"] = users.username_from_id(lobby["owner_id"])
     result["id_b64"] = lobby_id_to_b64(lobby["id"])
-    if for_lobby_list:
-        result["id"] = lobby["id"]
-    else:
+    result["id"] = lobby["id"]
+    if not for_lobby_list:
         result["status"] = LobbyStatus[lobby["status"]]
     return result
 
@@ -127,3 +126,7 @@ def start_game_in(id: int):
     sql = "UPDATE lobbies SET status = 'ingame' WHERE id=:id"
     db.session.execute(sql, {"id": id})
     db.session.commit()
+
+def exists(id: int) -> bool:
+    sql = "SELECT True FROM lobbies WHERE id = :id"
+    return db.session.execute(sql, {"id": id}).fetchone() is not None
