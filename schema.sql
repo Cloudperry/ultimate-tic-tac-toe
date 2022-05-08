@@ -1,10 +1,12 @@
 CREATE TYPE visibility AS ENUM ('public', 'friends', 'private');
+CREATE TYPE display_mode AS ENUM ('text', 'gui');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
 	visibility visibility NOT NULL,
+	display_mode display_mode NOT NULL,
 	creation_date DATE NOT NULL
 );
 
