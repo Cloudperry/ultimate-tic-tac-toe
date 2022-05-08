@@ -17,5 +17,5 @@ app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL").replace("postgres
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 # Initialize server-sent events
-app.config["REDIS_URL"] = "redis://localhost"
+app.config["REDIS_URL"] = getenv("REDIS_URL")
 app.register_blueprint(sse, url_prefix='/updates')
