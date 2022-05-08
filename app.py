@@ -162,7 +162,14 @@ def lobby(lobby_id_b64: str):
 
 @app.route("/game/<lobby_id>")
 def game(lobby_id: str):
-    return render_template("game.html", lobby_id=lobby_id, logged_in=session.get("id", 0) != 0)
+    if session.get("id", 0) != 0:
+        ui_mode = users.get_ui_mode()
+        if ui_mode == "text":
+            return render_template("game-text.html", lobby_id=lobby_id, logged_in=session.get("id", 0) != 0)
+        elif ui_mode == "gui":
+            return render_template("game.html", lobby_id=lobby_id, logged_in=session.get("id", 0) != 0)
+    else:
+        redirect_to_needs_login()
 
 @app.route("/stats")
 def stats():
@@ -170,7 +177,6 @@ def stats():
         return render_template(
             "stats.html", 
             logged_in=True,
-            username=users.username(), 
             game_history=game_stats.user_n_last_games(20),
             games_played=game_stats.user_games_played()
         )
