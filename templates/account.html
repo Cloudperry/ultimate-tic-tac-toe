@@ -2,7 +2,7 @@
 {% extends "layout.html" %}
 {% block content %}
 <h1>
-	Account settings for {{username}}
+	Account settings for {{ session["username"] }}
 </h1>
 
 {% if pws_not_matching %}

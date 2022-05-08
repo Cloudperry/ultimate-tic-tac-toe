@@ -4,10 +4,10 @@
 <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='stats.css') }}">
 
 <h1>
-	Game stats for {{username}}
+	Game stats for {{ session["username"] }}
 </h1>
 <h2>
-	You have played {{games_played}} games.
+	You have played {{ games_played }} games.
 </h2>
 <h2>
 	Your last 20 games:
@@ -24,7 +24,7 @@
 		</thead>
 		<tbody>
 			{% for game in game_history %}
-				<tr><td>{{game.opponent}}</td> <td>{% if game.is_win %} Win {% else %} Loss {% endif %}</td> <td>{{game.move_count}}</td> <td>{{game.played_on}}</td></tr>
+				<tr><td>{{ game.opponent }}</td> <td>{% if game.is_win %} Win {% else %} Loss {% endif %}</td> <td>{{ game.move_count }}</td> <td>{{ game.played_on }}</td></tr>
 			{% endfor %}
 		</tbody>
 	</table>
