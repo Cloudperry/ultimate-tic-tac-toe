@@ -14,7 +14,7 @@ def login(username: str, password: str) -> bool:
     else:
         if check_password_hash(user.password, password):
             session["id"] = user.id
-            print(session["id"])
+            session["username"] = username
             session["login_token"] = token_hex(16)
             return True
         else:
@@ -50,7 +50,8 @@ def logout():
 def register(username: str, password: str) -> bool:
     password_hash = generate_password_hash(password)
     try:
-        sql = "INSERT INTO users (username, password, visibility, creation_date) VALUES (:username, :password, 'private', current_date)"
+        sql = """INSERT INTO users (username, password, visibility, creation_date)
+        VALUES (:username, :password, 'private', 'text', current_date)"""
         db.session.execute(sql, {"username":username, "password":password_hash})
         db.session.commit()
     except:
@@ -95,7 +96,8 @@ def send_friend_req(to_username: str) -> Result:
     to_id = id_from_username_if_exists(to_username)
     if to_id.success:
         try:
-            sql = "INSERT INTO friends (sender_id, recipient_id, accepted) VALUES (:from_id, :to_id, False)"
+            sql = """INSERT INTO friends (sender_id, recipient_id, accepted) 
+            VALUES (:from_id, :to_id, False)"""
             db.session.execute(sql, {"from_id": session["id"], "to_id": to_id.result_or_msg})
             db.session.commit()
             return Result(True, "friend_req_sent")
@@ -105,11 +107,17 @@ def send_friend_req(to_username: str) -> Result:
         return to_id
 
 def accept_friend_req(accept_id: int):
-    sql = "UPDATE friends SET accepted = True WHERE sender_id=:accept_id AND recipient_id=:user_id OR sender_id=:user_id AND recipient_id=:accept_id"
+    sql = """UPDATE friends SET accepted = True WHERE sender_id=:accept_id 
+    AND recipient_id=:user_id OR sender_id=:user_id AND recipient_id=:accept_id"""
     db.session.execute(sql, {"user_id": session["id"], "accept_id": accept_id})
     db.session.commit()
 
 def remove_friend(remove_id: int):
-    sql = "DELETE FROM friends WHERE sender_id=:remove_id AND recipient_id=:user_id OR sender_id=:user_id AND recipient_id=:remove_id"
+    sql = """DELETE FROM friends WHERE sender_id=:remove_id AND 
+    recipient_id=:user_id OR sender_id=:user_id AND recipient_id=:remove_id"""
     db.session.execute(sql, {"user_id": session["id"], "remove_id": remove_id})
     db.session.commit()
+
+def get_ui_mode() -> str:
+    sql = "SELECT display_mode FROM users WHERE id = :id"
+    return db.session.scalars(sql, {"id": session["id"]}).first()
