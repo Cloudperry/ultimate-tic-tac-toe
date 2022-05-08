@@ -1,14 +1,15 @@
 from flask import redirect, render_template, request, url_for, session, abort
 from werkzeug.wrappers.response import Response
+from flask_sse import sse
+# Modules from this project
 from init import app
-#User modules
 import users, game_stats, lobbies
 
 def redirect_to_needs_login() -> Response:
     return redirect(url_for(".error", msg="Can't access user stats while not logged in."))
 
-def redirect_to_lobby(id: int) -> Response:
-    return redirect(url_for("lobby", lobby_id_b64=lobbies.lobby_id_to_b64(id)))
+def url_to_lobby(id: int) -> str:
+    return url_for("lobby", lobby_id_b64=lobbies.lobby_id_to_b64(id))
 
 def check_csrf():
     if request.form.get("login_token", "") != session["login_token"]:
@@ -97,23 +98,33 @@ def play():
                 curr_lobby_id_b64 = lobbies.lobby_id_to_b64(curr_lobby_id)
             return render_template("lobby-list.html", logged_in=True, lobby_list=lobby_list, curr_lobby_id=curr_lobby_id_b64)
         elif request.method == "POST":
-                check_csrf()
-                if request.form["action"] == "create_lobby":
-                    lobby_id = lobbies.new_lobby(request.form["visibility"])
-                    return redirect_to_lobby(lobby_id)
-                elif request.form["action"] == "play":
-                    lobby_id = int(request.form["id"])
-                    lobbies.join_lobby_as_player(lobby_id)
-                    return redirect_to_lobby(lobby_id)
-                elif request.form["action"] == "spectate":
-                    return redirect(url_for(".error", msg="Spectate is not yet implemented."))
+            check_csrf()
+            redirect_to, lobby_id = "", 0
+            if request.form["action"] == "create_lobby":
+                lobby_id = lobbies.new_lobby(request.form["visibility"])
+                redirect_to = url_to_lobby(lobby_id)
+            elif request.form["action"] == "play":
+                lobby_id = int(request.form["id"])
+                lobbies.join_lobby_as_player(lobby_id)
+                redirect_to = url_to_lobby(lobby_id)
+            elif request.form["action"] == "spectate":
+                redirect_to = url_for(".error", msg="Spectate is not yet implemented.")
+            # Send update events over SSE
+            if request.form["action"] != "spectate":
+                sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
+                sse.publish({"updated_by": session["id"]}, type="update", channel="lobby-list")
+            return redirect(redirect_to)
     else:
         return redirect_to_needs_login()
 
 @app.route("/lobby/<lobby_id_b64>", methods=["GET", "POST"])
 def lobby(lobby_id_b64: str):
-    if session.get("id", 0) != 0: 
-        lobby_id = lobbies.lobby_id_to_int(lobby_id_b64)
+    lobby_id = lobbies.lobby_id_to_int(lobby_id_b64)
+    if session.get("id") is None: 
+        return redirect_to_needs_login()
+    elif not lobbies.exists(lobby_id):
+        return render_template("lobby.html", logged_in=True, exists=False, lobby={"id": lobby_id})
+    else:
         lobby_data = lobbies.get_parsed_lobby(lobby_id)
         if request.method == "GET":
             if lobby_data["status"] == lobbies.LobbyStatus.ingame:
@@ -127,26 +138,27 @@ def lobby(lobby_id_b64: str):
             )
         elif request.method == "POST":
             check_csrf()
+            redirect_to = f"/lobby/{lobby_id_b64}"
             if request.form["action"] == "change_vis":
                 lobbies.set_lobby_vis(lobby_id, request.form["visibility"])
-                return redirect("/lobby/" + lobby_id_b64)
             elif request.form["action"] == "delete":
                 lobbies.delete_lobby(lobby_id)
-                return redirect("/lobby-list")
+                redirect_to = "/lobby-list"
             elif request.form["action"] == "leave":
                 lobbies.leave_lobby(lobby_id)
-                return redirect("/lobby-list")
+                redirect_to = "/lobby-list"
             elif request.form["action"] == "kick":
                 lobbies.leave_lobby(lobby_id)
-                return redirect("/lobby/" + lobby_id_b64)
             elif request.form["action"] == "send_msg":
                 lobbies.send_msg_in(lobby_id, request.form["content"])
-                return redirect("/lobby/" + lobby_id_b64)
             elif request.form["action"] == "start":
                 lobbies.start_game_in(lobby_id)
-                return redirect("/lobby/" + lobby_id_b64)
-    else:
-        return redirect_to_needs_login()
+            # Send update events over SSE
+            if request.form["action"] != "change_vis":
+                sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
+            if request.form["action"] != "send_msg":
+                sse.publish({"updated_by": session["id"]}, type="update", channel="lobby-list")
+            return redirect(redirect_to)
 
 @app.route("/game/<lobby_id>")
 def game(lobby_id: str):
