@@ -113,8 +113,11 @@ def play():
                 redirect_to = url_for(".error", msg="Spectate is not yet implemented.")
             # Send update events over SSE
             if request.form["action"] != "spectate":
-                sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
-                sse.publish({"updated_by": session["id"]}, type="update", channel="lobby-list")
+                try:
+                    sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
+                    sse.publish({"updated_by": session["id"]}, type="update", channel="lobby-list")
+                except:
+                    print("Failed to send updates over SSE.")
             return redirect(redirect_to)
     else:
         return redirect_to_needs_login()
@@ -157,10 +160,13 @@ def lobby(lobby_id_b64: str):
                 lobbies.start_game_in(lobby_id)
                 game_list.new_game_in(lobby_id, randint(1, 2))
             # Send update events over SSE
-            if request.form["action"] != "change_vis":
-                sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
-            if request.form["action"] != "send_msg":
-                sse.publish({"updated_by": session["id"]}, type="update", channel="lobby-list")
+            try:
+                if request.form["action"] != "change_vis":
+                    sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
+                if request.form["action"] != "send_msg":
+                    sse.publish({"updated_by": session["id"]}, type="update", channel="lobby-list")
+            except:
+                print("Failed to send updates over SSE.")
             return redirect(redirect_to)
 
 @app.route("/game/<lobby_id_b64>", methods=["GET", "POST"])
@@ -203,10 +209,13 @@ def game(lobby_id_b64: str):
                 elif request.form["action"] == "leave_game":
                     lobbies.leave_lobby(lobby_id)
                 # Send update events over SSE
-                sse.publish({"updated_by": session["id"]}, type="update", channel=f"game-{lobby_id}")
-                if request.form["action"] != "place_mark":
-                    sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
-                    sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-list")
+                try:
+                    sse.publish({"updated_by": session["id"]}, type="update", channel=f"game-{lobby_id}")
+                    if request.form["action"] != "place_mark":
+                        sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
+                        sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-list")
+                except:
+                    print("Failed to send updates over SSE.")
                 return redirect(redirect_to)
     else:
         redirect_to_needs_login()
