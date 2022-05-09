@@ -1,5 +1,96 @@
 <!DOCTYPE html>
 {% extends "layout.html" %}
 {% block content %}
-Page for playing the game in text mode. This will be written in HTML and it will refresh using Javascript and server-sent events.
+{% if msg_name == "unable_to_place" %}
+Unable to place mark. Please enter a coordinate as x and y separated by whitespace. Make sure that the coordinate is on the required local board (LB).
+{% endif %}
+{% if game_state.winning_player is not none %}
+	<h1>
+		{% if game_state.winning_player == player_n %}
+			You won a game versus  
+		{% else %}
+			You lost a game versus  
+		{% endif %}
+		{% if player_n == 1 %} 
+			{{ lobby.player2 }}!
+		{% elif player_n == 2 %} 
+			{{ lobby.owner }}!
+		{% endif %}
+	</h1>
+{% else %}
+<h1>
+	You are playing versus 
+	{% if player_n == 1 %} 
+		{{ lobby.player2 }}.
+	{% elif player_n == 2 %} 
+		{{ lobby.owner }}. 
+	{% endif %}
+	{% if player_n == game_state.turn_of_player %} 
+		It's your turn.
+		{% if game_state.next_board is none %}
+			You can place your mark anywhere.
+		{% else %}
+			You have to place your mark on LB{{ game_state.get_board_n(game_state.next_board) }}.
+		{% endif %}
+	{% elif player_n != game_state.turn_of_player %} 
+		Waiting for opponent.
+	{% endif %}
+</h1>
+</h1>
+{% endif %}
+<h1>
+	Board:
+</h1>
+<p style="font-size:40px"><pre>
+{{ game_state | string }}
+</pre></p>
+{% if player_n == game_state.turn_of_player %} 
+	<form action="/game/{{ lobby.id_b64 }}" method="post">
+		<input type="hidden" name="action" value="place_mark"/>
+		<input type="hidden" name="login_token" value={{ session.login_token }} />
+		<p>
+			Place a mark at &lt;x&gt; &lt;y&gt;: <input type="text" name="global_pos">
+		</p>
+		<input type="submit" value="Place">
+	</form>
+{% endif %}
+{% if game_state.winning_player is none %}
+	{% if player_n == 1 %}
+		<h1>
+			Cancel game
+		</h1>
+		<form action="/game/{{ lobby.id_b64 }}" method="post">
+			<input type="hidden" name="action" value="cancel_game"/>
+			<input type="hidden" name="login_token" value={{ session.login_token }} />
+			<input type="submit" value="Cancel">
+		</form>
+	{% elif player_n == 2 %}
+		<h1>
+			Leave game
+		</h1>
+		<form action="/game/{{ lobby.id_b64 }}" method="post">
+			<input type="hidden" name="action" value="leave_game"/>
+			<input type="hidden" name="login_token" value={{ session.login_token }} />
+			<input type="submit" value="Leave">
+		</form>
+	{% endif %}
+{% else %}
+	<h1>
+		Go back to lobby
+	</h1>
+	<form action="/game/{{ lobby.id_b64 }}" method="post">
+		<input type="hidden" name="action" value="cancel_game"/>
+		<input type="hidden" name="login_token" value={{ session.login_token }} />
+		<input type="submit" value="Go">
+	</form>
+{% endif %}
+<script>
+	var source = new EventSource("{{ url_for('sse.stream', channel='game-' + lobby.id | string) }}");
+	source.addEventListener('update', function(event) {
+		var data = JSON.parse(event.data);
+		if (data.updated_by !== {{ session['id'] }}) {
+			location.reload()
+		}
+	}, false);
+</script>
 {% endblock %}

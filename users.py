@@ -1,8 +1,9 @@
 from flask import session
 from werkzeug.security import check_password_hash, generate_password_hash
-from init import db
 from collections import namedtuple
 from secrets import token_hex
+# Modules from this project
+from init import db
 
 Result = namedtuple("Result", ["success", "result_or_msg"])
 
@@ -67,7 +68,7 @@ def id_from_username_if_exists(username: str) -> Result:
 
 def username_from_id(id: int) -> int:
     sql = "SELECT username FROM users WHERE id=:id"
-    return db.session.execute(sql, {"id":id}).fetchone()[0]
+    return db.session.scalars(sql, {"id":id}).first()
 
 def username() -> int:
     return username_from_id(session["id"])
@@ -110,6 +111,12 @@ def accept_friend_req(accept_id: int):
     sql = """UPDATE friends SET accepted = True WHERE sender_id=:accept_id 
     AND recipient_id=:user_id OR sender_id=:user_id AND recipient_id=:accept_id"""
     db.session.execute(sql, {"user_id": session["id"], "accept_id": accept_id})
+    db.session.commit()
+
+def deny_friend_req(deny_id: int):
+    sql = """DELETE FROM friends WHERE sender_id=:deny_id 
+    AND recipient_id=:user_id OR sender_id=:user_id AND recipient_id=:deny_id"""
+    db.session.execute(sql, {"user_id": session["id"], "deny_id": deny_id})
     db.session.commit()
 
 def remove_friend(remove_id: int):

@@ -34,7 +34,7 @@
 				<tr><td>{{friend.name}}</td></tr>
 				<tr><td>
 					<form action="/friends" method="post">
-						<input type="hidden" name="login_token" value={{ session.login_token }}/>
+						<input type="hidden" name="login_token" value={{ session.login_token }} />
 						<input type="hidden" name="action" value="remove_friend"/>
 						<input type="hidden" name="id" value={{friend.id}} />
 						<input type="submit" value="Remove friend">
@@ -56,12 +56,20 @@
 			{% for friend_req in friend_reqs_in %}
 				<tr><td>{{friend_req.name}}</td></tr>
 				<tr><td>
-					<form action="/friends" method="post">
-						<input type="hidden" name="login_token" value={{ session.login_token }}/>
-						<input type="hidden" name="action" value="accept_friend_req"/>
-						<input type="hidden" name="id" value={{friend_req.id}} />
-						<input type="submit" value="Accept">
-					</form>
+					<table>
+						<form action="/friends" method="post">
+							<input type="hidden" name="login_token" value={{ session.login_token }} />
+							<input type="hidden" name="action" value="accept_friend_req"/>
+							<input type="hidden" name="id" value={{friend_req.id}} />
+							<input type="submit" value="Accept">
+						</form> &nbsp;
+						<form action="/friends" method="post">
+							<input type="hidden" name="login_token" value={{ session.login_token }} />
+							<input type="hidden" name="action" value="deny_friend_req"/>
+							<input type="hidden" name="id" value={{friend_req.id}} />
+							<input type="submit" value="Deny">
+						</form>
+					</table>
 				</td><tr>
 			{% endfor %}
 		</tbody>

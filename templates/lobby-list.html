@@ -69,4 +69,13 @@
 		</tbody>
 	</table>
 </div></p>
+<script>
+	var source = new EventSource("{{ url_for('sse.stream', channel='lobby-list') }}");
+	source.addEventListener('update', function(event) {
+		var data = JSON.parse(event.data);
+		if (data.updated_by !== {{ session['id'] }}) {
+			location.reload()
+		}
+	}, false);
+</script>
 {% endblock %}

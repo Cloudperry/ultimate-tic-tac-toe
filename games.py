@@ -45,10 +45,12 @@ class LocalBoard:
 class Game:
     def __init__(self, starting_player_n: int) -> None:
         self.turn_of_player = starting_player_n
+        self.move_count = 0
         self.board = [[LocalBoard() for _ in range(3)] for _ in range(3)]
         self.board_status = [[CellState.Empty for _ in range(3)] for _ in range(3)]
         self.next_board = None
         self.winner = CellState.Empty
+        self.winning_player = None
 
     def global_pos_to_local(self, pos: Coord) -> tuple[Coord, Coord]:
         return Coord(pos.x // 3, pos.y // 3), Coord(pos.x % 3, pos.y % 3)
@@ -63,6 +65,7 @@ class Game:
         else:
             result = self.board[b_pos.y][b_pos.x].place_mark(player_n, pos)
             if result: # Execute win and turn logic only if mark was actually placed
+                self.move_count += 1
                 self.turn_of_player = next(iter({1, 2} - {player_n}))
                 win_status = self.board[b_pos.y][b_pos.x].check_winner()
                 if win_status != CellState.Empty:
@@ -73,6 +76,9 @@ class Game:
                     self.next_board = None
             return result
 
+    def get_board_n(self, b_pos: Coord) -> int:
+        return b_pos.x + 1 + b_pos.y * 3
+
     def get_cell(self, b_pos: Coord, pos: Coord) -> CellState:
         return self.board[b_pos.y][b_pos.x].local_b[pos.y][pos.x]
 
@@ -82,40 +88,45 @@ class Game:
     def check_winner(self) -> CellState:
         if self.winner == CellState.Empty:
             self.winner = check_winner_generic(self.board_status)
+            if self.winner != CellState.Empty:
+                self.winning_player = self.winner.value
         return self.winner
 
     def __str__(self) -> str:
         result = ""
         for row in range(9):
+            if row == 0:
+                result += "   0   1   2     3   4   5     6   7   8\n\n      LB1           LB2           LB3\n"
+            result += f"{row} "
             for col in range(9):
                 b_pos, local_pos = self.global_pos_to_local(Coord(col, row))
                 cell = self.get_cell(b_pos, local_pos)
                 if cell == CellState.Empty:
-                    result += " "
+                    result += "   "
                 elif cell == CellState.Player1:
-                    result += "X"
+                    result += " X "
                 elif cell == CellState.Player2:
-                    result += "O"
+                    result += " O "
                 if (col + 1) % 3 == 0:
-                    result += "  "
+                    result += "   "
                 elif col != 8:
                     result += "|"
             if row != 8:
                 if (row + 1) % 3 == 0:
-                    result += "\n\n\n"
+                    result += f"\n\n      LB{1 + ((row + 1) // 3) * 3}           LB{2 + ((row + 1) // 3) * 3}           LB{3 + ((row + 1) // 3) * 3}\n"
                 else:
-                    result += "\n-----  -----  -----\n"
+                    result += "\n  -----------   -----------   -----------\n"
         return result
 
 class Games:
     def __init__(self) -> None:
         self.active_games = {}
 
-    def new_game_in_lobby(self, lobby_id: int, starting_player_n: int):
+    def new_game_in(self, lobby_id: int, starting_player_n: int):
         self.active_games[lobby_id] = Game(starting_player_n)
 
 if __name__ == "__main__":
-    g = Game(1)
+    g = Game(2)
     g.place_mark(1, Coord(1, 1), Coord(1, 1))
     g.place_mark(2, Coord(1, 1), Coord(2, 1))
     g.place_mark(1, Coord(2, 1), Coord(1, 0))

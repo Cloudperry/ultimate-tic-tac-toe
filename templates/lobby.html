@@ -13,18 +13,18 @@
 		</h1>
 	{% elif session["id"] == lobby["owner_id"] %}
 		<h1>
-			You are the owner of lobby {{lobby.id_b64}}. 
+			You are the owner of lobby {{ lobby.id_b64 }}. 
 			{% if lobby["status"] == LobbyStatus.ready %} 
-				Do you want to start a game with {{lobby.player2}} or kick him? <br>
+				Do you want to start a game with {{ lobby.player2 }} or kick them? <br>
 				<table>
-					<form action="/lobby/{{lobby.id_b64}}" method="post">
+					<form action="/lobby/{{ lobby.id_b64 }}" method="post">
 							<input type="hidden" name="action" value="start">
-							<input type="hidden" name="login_token" value={{session.login_token}} />
+							<input type="hidden" name="login_token" value={{ session.login_token }} />
 							<input type="submit" value="Start">
 					</form> &nbsp
-					<form action="/lobby/{{lobby.id_b64}}" method="post">
+					<form action="/lobby/{{ lobby.id_b64 }}" method="post">
 							<input type="hidden" name="action" value="kick">
-							<input type="hidden" name="login_token" value={{session.login_token}} />
+							<input type="hidden" name="login_token" value={{ session.login_token }} />
 							<input type="submit" value="Kick">
 					</form>
 				</table>
@@ -34,51 +34,51 @@
 		</h1>
 		<p style="font-size:22px">
 			Change lobby visibility
-			<table><form action="/lobby/{{lobby.id_b64}}" method="post">
+			<table><form action="/lobby/{{ lobby.id_b64 }}" method="post">
 				<input type="hidden" name="action" value="change_vis">
 				<input type="hidden" name="login_token" value={{session.login_token}} />
 				<input type="hidden" name="visibility" value="public">
 				<input type="submit" value="Set to public">
 			</form> &nbsp;&nbsp
-			<form action="/lobby/{{lobby.id_b64}}" method="post">
+			<form action="/lobby/{{ lobby.id_b64 }}" method="post">
 				<input type="hidden" name="action" value="change_vis">
 				<input type="hidden" name="login_token" value={{session.login_token}} />
 				<input type="hidden" name="visibility" value="friends">
 				<input type="submit" value="Set to friends only">
 			</form> &nbsp;&nbsp
-			<form action="/lobby/{{lobby.id_b64}}" method="post">
+			<form action="/lobby/{{ lobby.id_b64 }}" method="post">
 				<input type="hidden" name="action" value="change_vis">
 				<input type="hidden" name="login_token" value={{session.login_token}} />
 				<input type="hidden" name="visibility" value="private">
 				<input type="submit" value="Set to hidden">
 			</form> </table>
 		</p>
-		<form action="/lobby/{{lobby.id_b64}}" method="post">
+		<form action="/lobby/{{ lobby.id_b64 }}" method="post">
 			<p style="font-size:22px">
 				Delete lobby <br>
 				<input type="hidden" name="action" value="delete">
-				<input type="hidden" name="login_token" value={{session.login_token}} />
+				<input type="hidden" name="login_token" value={{ session.login_token }} />
 				<input type="submit" value="Delete">
 			</p>
 		</form>
 	{% elif session["id"] == lobby["player2_id"] %}
 		<h1>
-			You are in lobby {{lobby.id_b64}}. Waiting for lobby owner to start the game. You will be automatically redirected to the game when it starts.
+			You are in lobby {{ lobby.id_b64 }} with {{ lobby.player2 }}. Waiting for lobby owner to start the game. You will be automatically redirected to the game when it starts.
 		</h1>
-		<form action="/lobby/{{lobby.id_b64}}" method="post">
+		<form action="/lobby/{{ lobby.id_b64 }}" method="post">
 			<p style="font-size:22px">
 				Leave lobby <br>
 				<input type="hidden" name="action" value="leave">
-				<input type="hidden" name="login_token" value={{session.login_token}} />
+				<input type="hidden" name="login_token" value={{ session.login_token }} />
 				<input type="submit" value="Leave">
 			</p>
 		</form> &nbsp;&nbsp
 	{% endif %}
 	{% if session["id"] == lobby["owner_id"] or session["id"] == lobby["player2_id"] %}
-		<p style="font-size:22px"><form action="/lobby/{{lobby.id_b64}}" method="post">
+		<p style="font-size:22px"><form action="/lobby/{{ lobby.id_b64 }}" method="post">
 			Send message: <input type="text" name="content">
 			<input type="hidden" name="action" value="send_msg">
-			<input type="hidden" name="login_token" value={{session.login_token}} />
+			<input type="hidden" name="login_token" value={{ session.login_token }} />
 			<input type="submit" value="Send">
 		</form></p>
 		<p><div class="verticalScrollableTable">
@@ -91,9 +91,9 @@
 				<tbody>
 				{% for message in messages %}
 					<tr><td>
-						<i>{{message.username}} said:</i> <br>
-						{{message.content}} <br>
-						<i>Sent on:</i> {{message.sent_at}}
+						<i>{{ message.username }} said:</i> <br>
+						{{ message.content }} <br>
+						<i>Sent on:</i> {{ message.sent_at }}
 					</td></tr>
 				{% endfor %}
 				</tbody>

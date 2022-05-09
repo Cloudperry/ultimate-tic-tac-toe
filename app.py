@@ -1,9 +1,11 @@
 from flask import redirect, render_template, request, url_for, session, abort
 from werkzeug.wrappers.response import Response
 from flask_sse import sse
+from random import randint
 # Modules from this project
-from init import app
-import users, game_stats, lobbies
+from init import app, game_list
+import users, game_stats, lobbies, games
+from lobbies import LobbyStatus
 
 def redirect_to_needs_login() -> Response:
     return redirect(url_for(".error", msg="Can't access user stats while not logged in."))
@@ -19,7 +21,7 @@ def check_csrf():
 def index():
     return render_template(
         "index.html",
-        logged_in=session.get("id", 0) != 0,
+        logged_in=session.get("id") != None,
         games_played=game_stats.games_played(),
         active_games=lobbies.active_games()
     )
@@ -28,7 +30,7 @@ def index():
 def login():
     if request.method == "GET":
         err_name=request.args.get("err_name", "")
-        return render_template("login.html", logged_in=session.get("id", 0) != 0, err_name=err_name)
+        return render_template("login.html", logged_in=session.get("id") != None, err_name=err_name)
     elif request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -46,7 +48,7 @@ def logout():
 def register():
     if request.method == "GET":
         err_name=request.args.get("err_name", "")
-        return render_template("register.html", logged_in=users.session.get("id", 0) != 0, err_name=err_name)
+        return render_template("register.html", logged_in=users.session.get("id") != None, err_name=err_name)
     elif request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -64,7 +66,7 @@ def register():
 
 @app.route("/account", methods=["GET", "POST"])
 def account():
-    if session.get("id", 0) != 0:
+    if session.get("id") != None:
         if request.method == "GET":
             return render_template("account.html", logged_in=True, username=users.username(), profile_vis=users.profile_vis()) 
         elif request.method == "POST": 
@@ -125,16 +127,16 @@ def lobby(lobby_id_b64: str):
     elif not lobbies.exists(lobby_id):
         return render_template("lobby.html", logged_in=True, exists=False, lobby={"id": lobby_id})
     else:
-        lobby_data = lobbies.get_parsed_lobby(lobby_id)
+        lobby = lobbies.get_parsed_lobby(lobby_id)
         if request.method == "GET":
-            if lobby_data["status"] == lobbies.LobbyStatus.ingame:
+            if lobby["status"] == LobbyStatus.ingame:
                 return redirect("/game/" + lobby_id_b64)
             return render_template(
                 "lobby.html", 
                 logged_in=True, 
-                lobby=lobby_data,
+                lobby=lobby,
                 messages=lobbies.get_messages(lobby_id),
-                LobbyStatus=lobbies.LobbyStatus
+                LobbyStatus=LobbyStatus
             )
         elif request.method == "POST":
             check_csrf()
@@ -153,6 +155,7 @@ def lobby(lobby_id_b64: str):
                 lobbies.send_msg_in(lobby_id, request.form["content"])
             elif request.form["action"] == "start":
                 lobbies.start_game_in(lobby_id)
+                game_list.new_game_in(lobby_id, randint(1, 2))
             # Send update events over SSE
             if request.form["action"] != "change_vis":
                 sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
@@ -160,32 +163,70 @@ def lobby(lobby_id_b64: str):
                 sse.publish({"updated_by": session["id"]}, type="update", channel="lobby-list")
             return redirect(redirect_to)
 
-@app.route("/game/<lobby_id>")
-def game(lobby_id: str):
-    if session.get("id", 0) != 0:
-        ui_mode = users.get_ui_mode()
-        if ui_mode == "text":
-            return render_template("game-text.html", lobby_id=lobby_id, logged_in=session.get("id", 0) != 0)
-        elif ui_mode == "gui":
-            return render_template("game.html", lobby_id=lobby_id, logged_in=session.get("id", 0) != 0)
+@app.route("/game/<lobby_id_b64>", methods=["GET", "POST"])
+def game(lobby_id_b64: str):
+    if session.get("id") != None:
+        lobby_id = lobbies.lobby_id_to_int(lobby_id_b64)
+        lobby = lobbies.get_parsed_lobby(lobby_id)
+        if lobby["status"] != LobbyStatus.ingame:
+            return redirect(f"/lobby/{lobby_id_b64}")
+        else:
+            ui_mode = users.get_ui_mode()
+            game_state = game_list.active_games[lobby_id]
+            player_n = 0
+            if lobby["owner_id"] == session["id"]:
+                player_n = 1
+            elif lobby["player2_id"] == session["id"]:
+                player_n = 2
+            if request.method == "GET":
+                msg_name = request.args.get("msg_name", "")
+                if ui_mode == "text":
+                    return render_template("game-text.html", lobby=lobby, game_state=game_state, player_n=player_n, logged_in=True, msg_name=msg_name)
+                elif ui_mode == "gui":
+                    return render_template("game.html", lobby=lobby, game_state=game_state, player_n=player_n, logged_in=True, msg_name=msg_name)
+            elif request.method == "POST":
+                check_csrf()
+                redirect_to = f"/game/{lobby_id_b64}"
+                if request.form["action"] == "place_mark":
+                    coords = request.form["global_pos"].split()
+                    placed = False
+                    if len(coords) == 2:
+                        b_pos, pos = game_state.global_pos_to_local(games.Coord(int(coords[0]), int(coords[1])))
+                        placed = game_state.place_mark(player_n, b_pos, pos)
+                        winner = game_state.check_winner()
+                        if winner != games.CellState.Empty:
+                            game_stats.add_game(lobby["owner_id"], lobby["player2_id"], game_state.move_count)
+                    if not placed:
+                        redirect_to = url_for("game", lobby_id_b64=lobby_id_b64, msg_name="unable_to_place")
+                elif request.form["action"] == "cancel_game":
+                    lobbies.cancel_game(lobby_id)
+                elif request.form["action"] == "leave_game":
+                    lobbies.leave_lobby(lobby_id)
+                # Send update events over SSE
+                sse.publish({"updated_by": session["id"]}, type="update", channel=f"game-{lobby_id}")
+                if request.form["action"] != "place_mark":
+                    sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-{lobby_id}")
+                    sse.publish({"updated_by": session["id"]}, type="update", channel=f"lobby-list")
+                return redirect(redirect_to)
     else:
         redirect_to_needs_login()
 
 @app.route("/stats")
 def stats():
-    if session.get("id", 0) != 0:
+    if session.get("id") != None:
         return render_template(
             "stats.html", 
             logged_in=True,
             game_history=game_stats.user_n_last_games(20),
-            games_played=game_stats.user_games_played()
+            games_played=game_stats.user_games_played(),
+            games_won=game_stats.user_games_won()
         )
     else:
         redirect_to_needs_login()
 
 @app.route("/friends", methods=["GET", "POST"])
 def friends():
-    if session.get("id", 0) != 0:
+    if session.get("id") != None:
         if request.method == "GET":
             msg_name = request.args.get("msg_name", "")
             return render_template(
@@ -202,6 +243,8 @@ def friends():
             if request.form["action"] == "accept_friend_req":
                 #It's safe to parse id as an int, because it comes from a hidden field of the form, that the user cannot modify in normal use
                 users.accept_friend_req(int(request.form["id"])) 
+            elif request.form["action"] == "deny_friend_req":
+                users.deny_friend_req(int(request.form["id"])) 
             elif request.form["action"] == "remove_friend":
                 users.remove_friend(int(request.form["id"]))
             elif request.form["action"] == "send_friend_req":

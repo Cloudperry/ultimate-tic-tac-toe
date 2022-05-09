@@ -1,7 +1,7 @@
 from init import db
 from flask import session
-from random import choice
 from enum import Enum
+from random import choice
 import base64
 # Modules from this project
 import users
@@ -75,21 +75,21 @@ def set_lobby_vis(id: int, visibility: str):
     db.session.execute(sql, {"id":id, "visibility":visibility})
     db.session.commit()
 
+def parse_lobby_for_list(lobby: dict) -> dict:
+    return parse_lobby(lobby, for_lobby_list=True)
+
 class LobbyStatus(Enum):
     ingame = 1
     ready = 2 
     waiting = 3
     inactive = 4
-
-def parse_lobby_for_list(lobby: dict) -> dict:
-    return parse_lobby(lobby, for_lobby_list=True)
-
+    
 def parse_lobby(lobby: dict, for_lobby_list=False) -> dict:
     result = {}
     result["owner_id"] = lobby["owner_id"]
     result["owner"] = users.username_from_id(lobby["owner_id"])
     result["player2_id"] = lobby["player2_id"]
-    result["player2"] = users.username_from_id(lobby["owner_id"])
+    result["player2"] = users.username_from_id(lobby["player2_id"])
     result["id_b64"] = lobby_id_to_b64(lobby["id"])
     result["id"] = lobby["id"]
     if not for_lobby_list:
@@ -125,6 +125,11 @@ def send_msg_in(id: int, content: str):
 def start_game_in(id: int):
     sql = "UPDATE lobbies SET status = 'ingame' WHERE id=:id"
     db.session.execute(sql, {"id": id})
+    db.session.commit()
+
+def cancel_game(id: int):
+    sql = "UPDATE lobbies SET status = 'ready' WHERE id = :id"
+    db.session.execute(sql, {"id":id})
     db.session.commit()
 
 def exists(id: int) -> bool:
