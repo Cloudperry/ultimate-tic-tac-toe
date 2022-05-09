@@ -52,7 +52,7 @@ class Game:
         self.winner = CellState.Empty
         self.winning_player = None
 
-    def global_pos_to_local(self, pos: Coord) -> tuple[Coord, Coord]:
+    def global_pos_to_local(self, pos: Coord) -> tuple:
         return Coord(pos.x // 3, pos.y // 3), Coord(pos.x % 3, pos.y % 3)
 
     def board_allowed(self, b_pos: Coord) -> bool:
