@@ -160,6 +160,7 @@ def lobby(lobby_id_b64: str):
                 lobbies.start_game_in(lobby_id)
                 game_list.new_game_in(lobby_id, randint(1, 2))
                 print(f"Created game in {lobby_id}")
+                print(game_list)
             # Send update events over SSE
             try:
                 if request.form["action"] != "change_vis":
@@ -180,6 +181,7 @@ def game(lobby_id_b64: str):
         else:
             ui_mode = users.get_ui_mode()
             print(f"Accessing game in {lobby_id}")
+            print(game_list)
             game_state = game_list.active_games[lobby_id]
             player_n = 0
             if lobby["owner_id"] == session["id"]:

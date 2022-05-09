@@ -23,4 +23,5 @@ app.register_blueprint(sse, url_prefix='/updates')
 # Reset all lobbies that were in game when the app was restarted (game state doesn't survive restarts)
 db.session.execute("UPDATE lobbies SET status = 'ready' WHERE status = 'ingame'")
 db.session.commit()
+print("initializing games list")
 game_list = Games() # Initialize class that stores game state objects for each lobby id with an active game
