@@ -51,7 +51,7 @@ def logout():
 def register(username: str, password: str) -> bool:
     password_hash = generate_password_hash(password)
     try:
-        sql = """INSERT INTO users (username, password, visibility, creation_date)
+        sql = """INSERT INTO users (username, password, visibility, display_mode, creation_date)
         VALUES (:username, :password, 'private', 'text', current_date)"""
         db.session.execute(sql, {"username":username, "password":password_hash})
         db.session.commit()
