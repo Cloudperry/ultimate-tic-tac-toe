@@ -55,16 +55,16 @@ def join_lobby_as_player(id: int):
     db.session.execute(sql, {"user_id": session["id"], "lobby_id": id})
     db.session.commit()
 
-def owned_lobby_if_exists() -> None|int:
+def owned_lobby_if_exists() -> int:
     sql = "SELECT id FROM lobbies WHERE status != 'inactive' AND owner_id = :user_id"
     return db.session.scalars(sql, {"user_id": session["id"]}).first()
     # It is fine to return the result of the query as is, because callers of this function will expect None if there were no lobbies
 
-def joined_lobby_if_exists() -> None|int:
+def joined_lobby_if_exists() -> int:
     sql = "SELECT id FROM lobbies WHERE status != 'inactive' AND player2_id = :user_id"
     return db.session.scalars(sql, {"user_id": session["id"]}).first()
 
-def curr_lobby_if_exists() -> None|int:
+def curr_lobby_if_exists() -> int:
     id = joined_lobby_if_exists()
     if id is None:
         id = owned_lobby_if_exists()
