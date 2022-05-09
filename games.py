@@ -125,6 +125,9 @@ class Games:
     def new_game_in(self, lobby_id: int, starting_player_n: int):
         self.active_games[lobby_id] = Game(starting_player_n)
 
+    def delete_game_in(self, lobby_id: int):
+        del self.active_games[lobby_id]
+
 if __name__ == "__main__":
     g = Game(2)
     g.place_mark(1, Coord(1, 1), Coord(1, 1))

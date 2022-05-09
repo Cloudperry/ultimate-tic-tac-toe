@@ -159,6 +159,7 @@ def lobby(lobby_id_b64: str):
             elif request.form["action"] == "start":
                 lobbies.start_game_in(lobby_id)
                 game_list.new_game_in(lobby_id, randint(1, 2))
+                print(f"Created game in {lobby_id}")
             # Send update events over SSE
             try:
                 if request.form["action"] != "change_vis":
@@ -178,6 +179,7 @@ def game(lobby_id_b64: str):
             return redirect(f"/lobby/{lobby_id_b64}")
         else:
             ui_mode = users.get_ui_mode()
+            print(f"Accessing game in {lobby_id}")
             game_state = game_list.active_games[lobby_id]
             player_n = 0
             if lobby["owner_id"] == session["id"]:
@@ -205,7 +207,9 @@ def game(lobby_id_b64: str):
                     if not placed:
                         redirect_to = url_for("game", lobby_id_b64=lobby_id_b64, msg_name="unable_to_place")
                 elif request.form["action"] == "cancel_game":
+                    print(f"Deleted game in {lobby_id}")
                     lobbies.cancel_game(lobby_id)
+                    game_list.delete_game_in(lobby_id)
                 elif request.form["action"] == "leave_game":
                     lobbies.leave_lobby(lobby_id)
                 # Send update events over SSE
